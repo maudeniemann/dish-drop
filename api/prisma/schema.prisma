@@ -1,0 +1,414 @@
+// Dish Drop - Food Social Media Platform
+// Prisma schema for PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+
+  // Profile
+  username      String    @unique
+  name          String
+  bio           String?   @db.Text
+  profileImage  String?
+
+  // Team affiliation
+  teamId        String?
+  team          Team?     @relation(fields: [teamId], references: [id])
+
+  // Location (for "near you" features)
+  latitude      Float?
+  longitude     Float?
+  city          String?
+
+  // Stats (denormalized for performance)
+  mealsDonated  Int       @default(0)
+  postCount     Int       @default(0)
+  mealStreak    Int       @default(0)
+  lastPostDate  DateTime?
+  mealsBalance  Int       @default(0)  // Available meals to donate
+
+  // Settings
+  isPrivate     Boolean   @default(false)
+  pushEnabled   Boolean   @default(true)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  saves         Save[]
+  collections   Collection[]
+  donations     Donation[]
+  achievements  UserAchievement[]
+
+  // Social
+  followers     Follow[]  @relation("following")
+  following     Follow[]  @relation("follower")
+
+  @@index([teamId])
+  @@index([latitude, longitude])
+  @@index([username])
+  @@index([email])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// ============================================
+// POSTS & DISHES
+// ============================================
+
+model Post {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Dish info
+  dishName      String
+  imageUrl      String
+  thumbnailUrl  String?
+  rating        Int        // 1-10 scale
+
+  // Restaurant link
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+
+  // Optional details
+  caption       String?    @db.Text
+  price         Float?
+
+  // Tags
+  dietaryTags   String[]   // ["vegetarian", "gluten-free", etc.]
+  cuisineType   String?    // "Italian", "Japanese", etc.
+
+  // Privacy
+  isPrivate     Boolean    @default(false)
+
+  // Donation
+  donationMade  Boolean    @default(false)
+  mealsDonated  Int        @default(0)
+
+  // Stats (denormalized)
+  likeCount     Int        @default(0)
+  commentCount  Int        @default(0)
+  saveCount     Int        @default(0)
+  viewCount     Int        @default(0)
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  comments        Comment[]
+  likes           Like[]
+  saves           Save[]
+  collectionItems CollectionItem[]
+
+  @@index([userId])
+  @@index([restaurantId])
+  @@index([createdAt])
+  @@index([rating])
+  @@index([cuisineType])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  content   String   @db.Text
+  parentId  String?  // For nested replies
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Save {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// ============================================
+// COLLECTIONS / PLAYLISTS
+// ============================================
+
+model Collection {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?  @db.Text
+  coverImage  String?
+  isPublic    Boolean  @default(true)
+  isDefault   Boolean  @default(false)  // "Favorites", "To Try" etc.
+
+  // Stats
+  itemCount   Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  items       CollectionItem[]
+
+  @@index([userId])
+  @@index([isPublic])
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  postId       String
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  addedAt      DateTime   @default(now())
+
+  @@unique([collectionId, postId])
+  @@index([collectionId])
+  @@index([postId])
+}
+
+// ============================================
+// RESTAURANTS
+// ============================================
+
+model Restaurant {
+  id             String   @id @default(cuid())
+
+  // Basic info
+  name           String
+  slug           String   @unique
+  logoUrl        String?
+  coverImage     String?
+
+  // Location
+  address        String
+  city           String
+  state          String
+  zipCode        String
+  latitude       Float
+  longitude      Float
+
+  // Contact
+  phone          String?
+  website        String?
+
+  // Integrations
+  yelpId         String?  @unique
+  googlePlaceId  String?  @unique
+
+  // Ordering links
+  reservationUrl String?
+  orderUrl       String?
+
+  // Stats (denormalized)
+  postCount      Int      @default(0)
+  averageRating  Float    @default(0)
+  mealsDonated   Int      @default(0)
+
+  // Categories/Cuisine
+  cuisineTypes   String[]
+  priceLevel     Int?     // 1-4 ($-$$$$)
+
+  // Hours (JSON for flexibility)
+  hours          Json?
+
+  // Claimed by owner
+  isClaimed      Boolean  @default(false)
+  ownerEmail     String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  posts          Post[]
+
+  @@index([latitude, longitude])
+  @@index([city])
+  @@index([averageRating])
+  @@index([slug])
+}
+
+// ============================================
+// TEAMS & LEADERBOARDS
+// ============================================
+
+model Team {
+  id           String    @id @default(cuid())
+
+  name         String    @unique
+  slug         String    @unique
+  type         String    // "university", "city", "company"
+  logoUrl      String?
+
+  // Location (for city teams)
+  city         String?
+  state        String?
+
+  // Stats (denormalized)
+  memberCount  Int       @default(0)
+  totalMeals   Int       @default(0)
+
+  // Goal tracking
+  currentGoal  Int       @default(0)
+  goalDeadline DateTime?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  members      User[]
+
+  @@index([type])
+  @@index([totalMeals])
+  @@index([slug])
+}
+
+// ============================================
+// DONATIONS / IMPACT
+// ============================================
+
+model Donation {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Donation details
+  mealCount       Int
+  amount          Float    // Dollar amount (0 if from post)
+
+  // Source
+  source          String   // "post", "purchase", "gift", "reward"
+  postId          String?
+
+  // Payment
+  stripePaymentId String?
+  status          String   @default("completed")
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([source])
+}
+
+// Global donation stats (single row table)
+model GlobalStats {
+  id           String    @id @default("global")
+  totalMeals   Int       @default(0)
+  currentGoal  Int       @default(1000000)
+  goalDeadline DateTime?
+  totalDonors  Int       @default(0)
+  updatedAt    DateTime  @updatedAt
+}
+
+// ============================================
+// ACHIEVEMENTS / BADGES
+// ============================================
+
+model Achievement {
+  id          String   @id @default(cuid())
+
+  name        String   @unique
+  slug        String   @unique
+  description String
+  iconUrl     String
+
+  // Unlock criteria
+  type        String   // "posts", "donations", "streak", "social", "exploration"
+  threshold   Int      // Number to unlock
+
+  // Rarity
+  tier        String   // "bronze", "silver", "gold", "platinum"
+
+  // Ordering
+  sortOrder   Int      @default(0)
+
+  // Relations
+  userAchievements UserAchievement[]
+
+  @@index([type])
+  @@index([tier])
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+// ============================================
+// CATEGORIES
+// ============================================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique  // "Burgers", "Pizza", "Sushi"
+  slug      String   @unique
+  iconUrl   String?
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+}
