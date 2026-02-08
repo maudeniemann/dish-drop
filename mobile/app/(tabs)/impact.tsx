@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../lib/constants';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import FlashSponsorships from '../../components/FlashSponsorships';
+import RewardsSection from '../../components/RewardsSection';
 import type { GlobalStats, PersonalStats, Team, Achievement, LeaderboardEntry } from '../../types';
 
 export default function ImpactScreen() {
@@ -111,8 +113,14 @@ export default function ImpactScreen() {
         </View>
       </View>
 
+      {/* Flash Sponsorships - visible to everyone */}
+      <FlashSponsorships limit={3} />
+
       {isAuthenticated ? (
         <>
+          {/* Rewards Section */}
+          <RewardsSection limit={6} />
+
           {/* Personal Stats */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Impact</Text>
@@ -133,9 +141,9 @@ export default function ImpactScreen() {
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
               <View style={styles.statCard}>
-                <Ionicons name="eye" size={24} color={Colors.info} />
-                <Text style={styles.statValue}>{personalStats?.totalViews || 0}</Text>
-                <Text style={styles.statLabel}>Views</Text>
+                <Ionicons name="logo-bitcoin" size={24} color={Colors.warning} />
+                <Text style={styles.statValue}>{user?.coins || 0}</Text>
+                <Text style={styles.statLabel}>Coins</Text>
               </View>
             </View>
           </View>

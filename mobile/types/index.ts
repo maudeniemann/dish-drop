@@ -15,6 +15,8 @@ export interface User {
   postCount: number;
   mealStreak: number;
   mealsBalance: number;
+  coins: number;
+  totalCoins: number;
   isPrivate: boolean;
   pushEnabled: boolean;
   createdAt: string;
@@ -290,4 +292,86 @@ export interface RestaurantFilters {
   cuisine?: string;
   priceLevel?: number;
   search?: string;
+}
+
+// Coupon types
+export interface Coupon {
+  id: string;
+  restaurantId: string;
+  restaurant: RestaurantPreview;
+  title: string;
+  description?: string;
+  code?: string;
+  discountType: 'percentage' | 'fixed' | 'freeItem';
+  discountValue: number;
+  minPurchase?: number;
+  coinCost: number;
+  totalQuantity?: number;
+  claimedCount: number;
+  expiresAt?: string;
+  isActive: boolean;
+  imageUrl?: string;
+  isClaimed?: boolean;
+  remaining?: number;
+}
+
+export interface UserCoupon {
+  id: string;
+  couponId: string;
+  coupon: Coupon;
+  status: 'active' | 'used' | 'expired';
+  usedAt?: string;
+  expiresAt?: string;
+  redemptionCode: string;
+  claimedAt: string;
+}
+
+// Flash Sponsorship types
+export interface FlashSponsorship {
+  id: string;
+  restaurantId: string;
+  restaurant: RestaurantPreview & { coverImage?: string };
+  title: string;
+  description?: string;
+  targetDrops: number;
+  currentDrops: number;
+  mealsToDonatePer: number;
+  bonusMeals: number;
+  totalMealsPledged: number;
+  totalMealsDonated: number;
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+  isCompleted: boolean;
+  bannerUrl?: string;
+  logoUrl?: string;
+  charityName?: string;
+  charityLogo?: string;
+  progress?: number;
+  dropsRemaining?: number;
+  userDropCount?: number;
+  timeRemaining?: number;
+}
+
+export interface FlashSponsorshipDrop {
+  id: string;
+  sponsorshipId: string;
+  userId: string;
+  user?: UserPreview;
+  postId?: string;
+  createdAt: string;
+}
+
+// Notification types
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'like' | 'comment' | 'follow' | 'achievement' | 'coupon' | 'flash_sponsorship';
+  title: string;
+  body: string;
+  imageUrl?: string;
+  actionType?: string;
+  actionId?: string;
+  isRead: boolean;
+  createdAt: string;
 }

@@ -42,6 +42,10 @@ model User {
   lastPostDate  DateTime?
   mealsBalance  Int       @default(0)  // Available meals to donate
 
+  // Gamification - Coins earned from posting
+  coins         Int       @default(0)
+  totalCoins    Int       @default(0)  // Lifetime total (coins can be spent)
+
   // Settings
   isPrivate     Boolean   @default(false)
   pushEnabled   Boolean   @default(true)
@@ -61,6 +65,10 @@ model User {
   // Social
   followers     Follow[]  @relation("following")
   following     Follow[]  @relation("follower")
+
+  // Gamification
+  coupons       UserCoupon[]
+  flashDrops    FlashSponsorshipDrop[]
 
   @@index([teamId])
   @@index([latitude, longitude])
@@ -276,7 +284,9 @@ model Restaurant {
   updatedAt      DateTime @updatedAt
 
   // Relations
-  posts          Post[]
+  posts              Post[]
+  coupons            Coupon[]
+  flashSponsorships  FlashSponsorship[]
 
   @@index([latitude, longitude])
   @@index([city])
@@ -411,4 +421,154 @@ model Category {
   sortOrder Int      @default(0)
 
   createdAt DateTime @default(now())
+}
+
+// ============================================
+// COUPONS & REWARDS (Coin Redemption)
+// ============================================
+
+model Coupon {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Coupon details
+  title         String      // "10% Off Your Order"
+  description   String?     @db.Text
+  code          String?     // Optional promo code
+  discountType  String      // "percentage", "fixed", "freeItem"
+  discountValue Float       // 10 for 10%, or 5 for $5 off
+  minPurchase   Float?      // Minimum purchase required
+
+  // Cost in coins
+  coinCost      Int         // How many coins to redeem
+
+  // Availability
+  totalQuantity Int?        // Null = unlimited
+  claimedCount  Int         @default(0)
+  expiresAt     DateTime?
+  isActive      Boolean     @default(true)
+
+  // Image
+  imageUrl      String?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  userCoupons   UserCoupon[]
+
+  @@index([restaurantId])
+  @@index([isActive])
+  @@index([coinCost])
+}
+
+model UserCoupon {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  couponId    String
+  coupon      Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  // Status
+  status      String   @default("active")  // "active", "used", "expired"
+  usedAt      DateTime?
+  expiresAt   DateTime?
+
+  // Unique redemption code for this user
+  redemptionCode String @unique @default(cuid())
+
+  claimedAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([couponId])
+  @@index([status])
+}
+
+// ============================================
+// FLASH SPONSORSHIPS (Meal Donation Campaigns)
+// ============================================
+
+model FlashSponsorship {
+  id            String     @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Campaign details
+  title         String        // "Drop 50 times, we donate 100 meals!"
+  description   String?       @db.Text
+
+  // Goals
+  targetDrops   Int           // Number of posts needed
+  currentDrops  Int           @default(0)
+  mealsToDonatePer Int        @default(0)  // Meals per drop after goal
+  bonusMeals    Int           @default(0)  // Bonus meals when goal is hit
+
+  // Total meals this campaign will donate
+  totalMealsPledged Int
+  totalMealsDonated Int       @default(0)
+
+  // Timing
+  startsAt      DateTime      @default(now())
+  endsAt        DateTime
+  isActive      Boolean       @default(true)
+  isCompleted   Boolean       @default(false)
+
+  // Visuals
+  bannerUrl     String?
+  logoUrl       String?
+
+  // Charity partner
+  charityName   String?
+  charityLogo   String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  drops         FlashSponsorshipDrop[]
+
+  @@index([restaurantId])
+  @@index([isActive])
+  @@index([endsAt])
+}
+
+model FlashSponsorshipDrop {
+  id              String           @id @default(cuid())
+  sponsorshipId   String
+  sponsorship     FlashSponsorship @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId          String?          // Optional link to the post
+
+  createdAt       DateTime         @default(now())
+
+  @@unique([sponsorshipId, userId, postId])
+  @@index([sponsorshipId])
+  @@index([userId])
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+
+  type      String   // "like", "comment", "follow", "achievement", "coupon", "flash_sponsorship"
+  title     String
+  body      String
+  imageUrl  String?
+
+  // Deep link data
+  actionType String?  // "post", "profile", "coupon", "sponsorship"
+  actionId   String?
+
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
 }

@@ -259,12 +259,17 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
         }
       }
 
+      // Award 1 coin for posting
+      const COINS_PER_POST = 1;
+
       await tx.user.update({
         where: { id: userId },
         data: {
           postCount: { increment: 1 },
           lastPostDate: new Date(),
           mealStreak: newStreak,
+          coins: { increment: COINS_PER_POST },
+          totalCoins: { increment: COINS_PER_POST },
           ...(mealsDonated > 0
             ? {
                 mealsBalance: { decrement: mealsDonated },
@@ -273,6 +278,34 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
             : {}),
         },
       });
+
+      // Check for active flash sponsorships at this restaurant
+      const activeSponsorship = await tx.flashSponsorship.findFirst({
+        where: {
+          restaurantId: data.restaurantId,
+          isActive: true,
+          endsAt: { gt: new Date() },
+          isCompleted: false,
+        },
+      });
+
+      let sponsorshipDrop = null;
+      if (activeSponsorship) {
+        // Record drop for sponsorship
+        sponsorshipDrop = await tx.flashSponsorshipDrop.create({
+          data: {
+            sponsorshipId: activeSponsorship.id,
+            userId,
+            postId: post.id,
+          },
+        });
+
+        // Increment sponsorship drop count
+        await tx.flashSponsorship.update({
+          where: { id: activeSponsorship.id },
+          data: { currentDrops: { increment: 1 } },
+        });
+      }
 
       // Update restaurant stats
       await tx.restaurant.update({
@@ -317,10 +350,18 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
         });
       }
 
-      return post;
+      return { post, sponsorshipDrop, activeSponsorship };
     });
 
-    res.status(201).json({ post: result });
+    res.status(201).json({
+      post: result.post,
+      coinsEarned: 1,
+      sponsorship: result.activeSponsorship ? {
+        id: result.activeSponsorship.id,
+        title: result.activeSponsorship.title,
+        contributed: true,
+      } : null,
+    });
   } catch (error) {
     console.error('Create post error:', error);
     res.status(500).json({ error: 'Failed to create post' });

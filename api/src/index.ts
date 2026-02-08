@@ -10,6 +10,8 @@ import collectionRoutes from './routes/collections';
 import impactRoutes from './routes/impact';
 import teamRoutes from './routes/teams';
 import searchRoutes from './routes/search';
+import couponRoutes from './routes/coupons';
+import sponsorshipRoutes from './routes/sponsorships';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +35,8 @@ app.use('/api/collections', collectionRoutes);
 app.use('/api/impact', impactRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/sponsorships', sponsorshipRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

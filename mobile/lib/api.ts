@@ -19,6 +19,11 @@ import type {
   FeedFilters,
   RestaurantFilters,
   Category,
+  Coupon,
+  UserCoupon,
+  FlashSponsorship,
+  FlashSponsorshipDrop,
+  UserPreview,
 } from '../types';
 
 // API client with authentication
@@ -451,6 +456,54 @@ class ApiClient {
 
   async getCategories(): Promise<{ categories: Category[] }> {
     return this.request('/search/categories');
+  }
+
+  // Coupon endpoints
+  async getCoupons(restaurantId?: string): Promise<{ coupons: Coupon[] }> {
+    const params = new URLSearchParams();
+    if (restaurantId) params.append('restaurantId', restaurantId);
+    return this.request(`/coupons?${params}`);
+  }
+
+  async getMyCoupons(): Promise<{ coupons: UserCoupon[] }> {
+    return this.request('/coupons/mine');
+  }
+
+  async claimCoupon(couponId: string): Promise<{ userCoupon: UserCoupon; message: string; coinsSpent: number }> {
+    return this.request(`/coupons/${couponId}/claim`, { method: 'POST' });
+  }
+
+  async useCoupon(userCouponId: string): Promise<{ message: string }> {
+    return this.request(`/coupons/${userCouponId}/use`, { method: 'POST' });
+  }
+
+  // Flash Sponsorship endpoints
+  async getSponsorships(): Promise<{ sponsorships: FlashSponsorship[] }> {
+    return this.request('/sponsorships');
+  }
+
+  async getSponsorship(sponsorshipId: string): Promise<{
+    sponsorship: FlashSponsorship & {
+      topContributors: Array<UserPreview & { dropCount: number }>;
+      drops: FlashSponsorshipDrop[];
+    };
+  }> {
+    return this.request(`/sponsorships/${sponsorshipId}`);
+  }
+
+  async getRestaurantSponsorships(restaurantId: string): Promise<{ sponsorships: FlashSponsorship[] }> {
+    return this.request(`/sponsorships/restaurant/${restaurantId}`);
+  }
+
+  async recordSponsorshipDrop(sponsorshipId: string, postId?: string): Promise<{
+    drop: FlashSponsorshipDrop;
+    goalReached: boolean;
+    message: string;
+  }> {
+    return this.request(`/sponsorships/${sponsorshipId}/drop`, {
+      method: 'POST',
+      body: JSON.stringify({ postId }),
+    });
   }
 }
 
