@@ -4,6 +4,7 @@ import type {
   User,
   Post,
   Restaurant,
+  RestaurantMenu,
   Collection,
   Team,
   Comment,
@@ -24,7 +25,32 @@ import type {
   FlashSponsorship,
   FlashSponsorshipDrop,
   UserPreview,
+  MysteryBox,
+  TrendingDish,
+  SponsoredPost,
 } from '../types';
+import {
+  mockPosts,
+  mockRestaurants,
+  mockUsers,
+  mockGlobalStats,
+  mockPersonalStats,
+  mockCollections,
+  mockLeaderboard,
+  mockAchievements,
+  mockCategories,
+  mockCoupons,
+  mockFlashSponsorship,
+  mockMysteryBox,
+  mockTrendingDishes,
+  mockSponsoredPost,
+  mockCommunityCollections,
+  COIN_THRESHOLDS,
+  getMenuForRestaurant,
+} from './mockData';
+
+// Enable mock mode for demos
+const USE_MOCK_DATA = true;
 
 // API client with authentication
 class ApiClient {
@@ -167,6 +193,11 @@ class ApiClient {
     cursor?: string,
     limit = 20
   ): Promise<{ posts: Post[]; nextCursor: string | null }> {
+    if (USE_MOCK_DATA) {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { posts: mockPosts, nextCursor: null };
+    }
     const params = new URLSearchParams({ limit: String(limit) });
     if (filters.feed) params.append('feed', filters.feed);
     if (filters.lat) params.append('lat', String(filters.lat));
@@ -238,6 +269,10 @@ class ApiClient {
     cursor?: string,
     limit = 20
   ): Promise<{ restaurants: Restaurant[]; nextCursor: string | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { restaurants: mockRestaurants.slice(0, limit), nextCursor: null };
+    }
     const params = new URLSearchParams({ limit: String(limit) });
     if (filters.lat) params.append('lat', String(filters.lat));
     if (filters.lng) params.append('lng', String(filters.lng));
@@ -254,6 +289,10 @@ class ApiClient {
     lng: number,
     limit = 10
   ): Promise<{ restaurants: Restaurant[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { restaurants: mockRestaurants.slice(0, limit) };
+    }
     const params = new URLSearchParams({
       lat: String(lat),
       lng: String(lng),
@@ -263,6 +302,12 @@ class ApiClient {
   }
 
   async getRestaurant(restaurantId: string): Promise<{ restaurant: Restaurant }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const restaurant = mockRestaurants.find(r => r.id === restaurantId);
+      if (!restaurant) throw new Error('Restaurant not found');
+      return { restaurant };
+    }
     return this.request(`/restaurants/${restaurantId}`);
   }
 
@@ -272,9 +317,24 @@ class ApiClient {
     cursor?: string,
     limit = 20
   ): Promise<{ posts: Post[]; nextCursor: string | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const posts = mockPosts.filter(p => p.restaurantId === restaurantId);
+      return { posts, nextCursor: null };
+    }
     const params = new URLSearchParams({ sort, limit: String(limit) });
     if (cursor) params.append('cursor', cursor);
     return this.request(`/restaurants/${restaurantId}/posts?${params}`);
+  }
+
+  async getRestaurantMenu(restaurantId: string): Promise<{ menu: RestaurantMenu }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const restaurant = mockRestaurants.find(r => r.id === restaurantId);
+      if (!restaurant) throw new Error('Restaurant not found');
+      return { menu: getMenuForRestaurant(restaurant) };
+    }
+    return this.request(`/restaurants/${restaurantId}/menu`);
   }
 
   async createRestaurant(data: Partial<Restaurant>): Promise<{ restaurant: Restaurant }> {
@@ -286,6 +346,10 @@ class ApiClient {
 
   // Collection endpoints
   async getCollections(): Promise<{ collections: Collection[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { collections: mockCollections };
+    }
     return this.request('/collections');
   }
 
@@ -305,6 +369,16 @@ class ApiClient {
     cursor?: string,
     limit = 20
   ): Promise<{ collection: Collection; items: Post[]; nextCursor: string | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const collection = mockCollections.find(c => c.id === collectionId)
+        || mockCommunityCollections.find(c => c.id === collectionId);
+      if (!collection) throw new Error('Collection not found');
+      // Return collection with mock posts
+      const items = mockPosts.slice(0, limit);
+      return { collection, items, nextCursor: null };
+    }
+
     const params = new URLSearchParams({ limit: String(limit) });
     if (cursor) params.append('cursor', cursor);
     return this.request(`/collections/${collectionId}?${params}`);
@@ -346,6 +420,10 @@ class ApiClient {
 
   // Impact endpoints
   async getGlobalStats(): Promise<{ stats: GlobalStats }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { stats: mockGlobalStats };
+    }
     return this.request('/impact/global');
   }
 
@@ -354,6 +432,25 @@ class ApiClient {
     team: Team | null;
     achievements: Achievement[];
   }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return {
+        stats: mockPersonalStats,
+        team: {
+          id: 'team-bc',
+          name: 'Boston College',
+          slug: 'boston-college',
+          type: 'university',
+          logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/98/Boston_College_Eagles_logo.svg/150px-Boston_College_Eagles_logo.svg.png',
+          city: 'Chestnut Hill',
+          state: 'MA',
+          memberCount: 1234,
+          totalMeals: 45678,
+          currentGoal: 50000,
+        },
+        achievements: mockAchievements.slice(0, 3),
+      };
+    }
     return this.request('/impact/personal');
   }
 
@@ -377,14 +474,26 @@ class ApiClient {
   }
 
   async getFriendsLeaderboard(limit = 10): Promise<{ leaderboard: LeaderboardEntry[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { leaderboard: mockLeaderboard.slice(0, limit) };
+    }
     return this.request(`/impact/leaderboard/friends?limit=${limit}`);
   }
 
   async getGlobalLeaderboard(limit = 50): Promise<{ leaderboard: LeaderboardEntry[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { leaderboard: mockLeaderboard.slice(0, limit) };
+    }
     return this.request(`/impact/leaderboard/global?limit=${limit}`);
   }
 
   async getAllAchievements(): Promise<{ achievements: Achievement[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { achievements: mockAchievements };
+    }
     return this.request('/impact/achievements');
   }
 
@@ -455,11 +564,23 @@ class ApiClient {
   }
 
   async getCategories(): Promise<{ categories: Category[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { categories: mockCategories };
+    }
     return this.request('/search/categories');
   }
 
-  // Coupon endpoints
-  async getCoupons(restaurantId?: string): Promise<{ coupons: Coupon[] }> {
+  // Coupon endpoints (API)
+  async getCoupons(restaurantId?: string): Promise<{ coupons: Coupon[]; coinBalance: number; thresholds: typeof COIN_THRESHOLDS }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return {
+        coupons: mockCoupons,
+        coinBalance: mockPersonalStats.coinBalance,
+        thresholds: COIN_THRESHOLDS,
+      };
+    }
     const params = new URLSearchParams();
     if (restaurantId) params.append('restaurantId', restaurantId);
     return this.request(`/coupons?${params}`);
@@ -477,9 +598,21 @@ class ApiClient {
     return this.request(`/coupons/${userCouponId}/use`, { method: 'POST' });
   }
 
+  async redeemCoupon(couponId: string): Promise<{ coupon: Coupon }> {
+    return this.request(`/coupons/${couponId}/redeem`, { method: 'POST' });
+  }
+
   // Flash Sponsorship endpoints
   async getSponsorships(): Promise<{ sponsorships: FlashSponsorship[] }> {
     return this.request('/sponsorships');
+  }
+
+  async getActiveSponsorship(): Promise<{ sponsorship: FlashSponsorship | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { sponsorship: mockFlashSponsorship };
+    }
+    return this.request('/sponsorships/active');
   }
 
   async getSponsorship(sponsorshipId: string): Promise<{
@@ -504,6 +637,37 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ postId }),
     });
+  }
+
+  // Mystery Box endpoints
+  async getMysteryBox(): Promise<{ mysteryBox: MysteryBox | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { mysteryBox: mockMysteryBox };
+    }
+    return this.request('/mystery-box/today');
+  }
+
+  async openMysteryBox(boxId: string): Promise<{ mysteryBox: MysteryBox }> {
+    return this.request(`/mystery-box/${boxId}/open`, { method: 'POST' });
+  }
+
+  // Trending endpoints
+  async getTrendingDishes(limit = 6): Promise<{ dishes: TrendingDish[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { dishes: mockTrendingDishes.slice(0, limit) };
+    }
+    return this.request(`/trending/dishes?limit=${limit}`);
+  }
+
+  // Sponsored content
+  async getSponsoredPost(): Promise<{ sponsored: SponsoredPost | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return { sponsored: mockSponsoredPost };
+    }
+    return this.request('/sponsored/feed');
   }
 }
 

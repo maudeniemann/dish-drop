@@ -276,6 +276,10 @@ model Restaurant {
   // Hours (JSON for flexibility)
   hours          Json?
 
+  // Menu
+  menuUrl        String?
+  menu           Json?    // Structured menu data: { categories: [{ name, items: [{ name, description, price }] }] }
+
   // Claimed by owner
   isClaimed      Boolean  @default(false)
   ownerEmail     String?

@@ -13,16 +13,17 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
 import { Colors, Spacing, FontSizes, BorderRadius, DIETARY_TAGS, CUISINE_TYPES } from '../../lib/constants';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLocation } from '../../contexts/LocationContext';
 import type { Restaurant } from '../../types';
 
 type Step = 'photo' | 'restaurant' | 'details' | 'tags';
 
 export default function CreateScreen() {
   const { user } = useAuth();
+  const { coords } = useLocation();
   const [currentStep, setCurrentStep] = useState<Step>('photo');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,18 +51,15 @@ export default function CreateScreen() {
   }, [currentStep]);
 
   const loadNearbyRestaurants = async () => {
+    if (!coords) return;
     setIsLoadingRestaurants(true);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const location = await Location.getCurrentPositionAsync({});
-        const { restaurants } = await api.getNearbyRestaurants(
-          location.coords.latitude,
-          location.coords.longitude,
-          20
-        );
-        setNearbyRestaurants(restaurants);
-      }
+      const { restaurants } = await api.getNearbyRestaurants(
+        coords.latitude,
+        coords.longitude,
+        20
+      );
+      setNearbyRestaurants(restaurants);
     } catch (error) {
       console.error('Error loading restaurants:', error);
     } finally {

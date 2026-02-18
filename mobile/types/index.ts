@@ -79,6 +79,22 @@ export interface PostPreview {
   user?: UserPreview;
 }
 
+// Menu types
+export interface MenuItem {
+  name: string;
+  description?: string;
+  price?: string;
+}
+
+export interface MenuCategory {
+  name: string;
+  items: MenuItem[];
+}
+
+export interface RestaurantMenu {
+  categories: MenuCategory[];
+}
+
 // Restaurant types
 export interface Restaurant {
   id: string;
@@ -96,6 +112,8 @@ export interface Restaurant {
   website?: string;
   reservationUrl?: string;
   orderUrl?: string;
+  menuUrl?: string;
+  menu?: RestaurantMenu;
   postCount: number;
   averageRating: number;
   mealsDonated: number;
@@ -208,6 +226,42 @@ export interface PersonalStats {
   totalViews: number;
   restaurantsVisited: number;
   dishesSaved: number;
+  coinBalance: number;
+}
+
+// Mystery Box / Daily Coupon
+export interface MysteryBox {
+  id: string;
+  date: string;
+  sponsorRestaurant: RestaurantPreview;
+  reward: string;
+  rewardDescription: string;
+  isOpened: boolean;
+  expiresAt: string;
+}
+
+// Trending Dish
+export interface TrendingDish {
+  id: string;
+  dishName: string;
+  imageUrl: string;
+  restaurantName: string;
+  restaurantId: string;
+  postCount: number;
+  averageRating: number;
+}
+
+// Sponsored Post (for nearby feed)
+export interface SponsoredPost {
+  id: string;
+  restaurantId: string;
+  restaurant: RestaurantPreview;
+  imageUrl: string;
+  title: string;
+  subtitle: string;
+  ctaText: string;
+  ctaUrl?: string;
+  isSponsored: true;
 }
 
 // Category
@@ -306,10 +360,12 @@ export interface Coupon {
   discountValue: number;
   minPurchase?: number;
   coinCost: number;
+  originalValue?: string;
   totalQuantity?: number;
   claimedCount: number;
   expiresAt?: string;
   isActive: boolean;
+  isRedeemed?: boolean;
   imageUrl?: string;
   isClaimed?: boolean;
   remaining?: number;
@@ -339,11 +395,15 @@ export interface FlashSponsorship {
   bonusMeals: number;
   totalMealsPledged: number;
   totalMealsDonated: number;
+  dropsRequired: number;
+  totalMealsGoal: number;
+  currentMeals: number;
   startsAt: string;
   endsAt: string;
   isActive: boolean;
   isCompleted: boolean;
   bannerUrl?: string;
+  bannerImageUrl?: string;
   logoUrl?: string;
   charityName?: string;
   charityLogo?: string;
@@ -375,3 +435,41 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
 }
+
+// UI Filter/Sort state types
+export type ExploreSortOption = 'rating' | 'distance' | 'newest' | 'popular';
+export type FeedSortOption = 'rating' | 'distance' | 'newest' | 'popular';
+
+export interface ExploreFilterState {
+  cuisines: string[];
+  priceLevels: number[];
+  minRating: number;
+  maxDistance: number | null; // miles, null = no limit
+  hasReservations: boolean;
+  hasDelivery: boolean;
+  sort: ExploreSortOption;
+}
+
+export interface FeedFilterState {
+  cuisines: string[];
+  dietaryTags: string[];
+  minRating: number;
+  sort: FeedSortOption;
+}
+
+export const DEFAULT_EXPLORE_FILTERS: ExploreFilterState = {
+  cuisines: [],
+  priceLevels: [],
+  minRating: 0,
+  maxDistance: null,
+  hasReservations: false,
+  hasDelivery: false,
+  sort: 'rating',
+};
+
+export const DEFAULT_FEED_FILTERS: FeedFilterState = {
+  cuisines: [],
+  dietaryTags: [],
+  minRating: 0,
+  sort: 'newest',
+};

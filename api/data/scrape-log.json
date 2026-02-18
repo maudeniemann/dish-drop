@@ -1,0 +1,861 @@
+{
+  "timestamp": "2026-02-15T19:33:50.780Z",
+  "totalProcessed": 218,
+  "success": 1,
+  "failed": 87,
+  "skipped": 130,
+  "totalMenusStored": 131,
+  "results": [
+    {
+      "slug": "seasons-52",
+      "name": "Seasons 52",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.seasons52.com/locations/ma/chestnut-hill/chestnut-hill/4538?cmpid=br:s52_ag:ie_ch:loc_ca:S52GMB_sn:gmb_gt:chestnut-hil",
+      "duration": 49236
+    },
+    {
+      "slug": "the-friendly-toast",
+      "name": "The Friendly Toast",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.thefriendlytoast.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4757
+    },
+    {
+      "slug": "stella",
+      "name": "Stella",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://stellanewtoncentre.com/catering",
+      "error": "Could not extract any menu items",
+      "duration": 3392
+    },
+    {
+      "slug": "chestnut-hill-restaurant",
+      "name": "Chestnut Hill Restaurant",
+      "status": "no_website",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "duration": 0
+    },
+    {
+      "slug": "farmstead-table",
+      "name": "Farmstead Table",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.farmsteadtable.com/",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 3628
+    },
+    {
+      "slug": "the-capital-grille",
+      "name": "The Capital Grille",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.thecapitalgrille.com/locations/ma/chestnut-hill/chestnut-hill/8004?cmpid=br:tcg_ag:ie_ch:loc_ca:TCGGMB_sn:gmb_gt:chest",
+      "duration": 49189
+    },
+    {
+      "slug": "pino-s-pizza",
+      "name": "Pino's Pizza",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://pinospizza.com/",
+      "error": "Could not extract any menu items",
+      "duration": 12305
+    },
+    {
+      "slug": "from-scratch-authentic-italian-pizzeria",
+      "name": "From Scratch-Authentic Italian Pizzeria",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://fromscratch-g.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 3415
+    },
+    {
+      "slug": "greenhouse-kitchen-italian-restaurant",
+      "name": "Greenhouse Kitchen Italian Restaurant",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://greenhousekitchenma.com/",
+      "error": "Could not extract any menu items",
+      "duration": 4327
+    },
+    {
+      "slug": "mama-stella-s-pizza",
+      "name": "Mama Stella's Pizza",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.pizza-etc.com/",
+      "error": "Could not extract any menu items",
+      "duration": 6916
+    },
+    {
+      "slug": "detroit-pizza-co",
+      "name": "Detroit Pizza Co.",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.dpcboston.com/s/order",
+      "error": "Could not extract any menu items",
+      "duration": 4708
+    },
+    {
+      "slug": "la-befana-pizzeria",
+      "name": "La Befana Pizzeria",
+      "status": "skipped",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "Third-party ordering platform, not a restaurant website",
+      "duration": 0
+    },
+    {
+      "slug": "sammys-pizza-and-fried-chicken",
+      "name": "Sammys Pizza and Fried Chicken",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://sammyspizzabrighton.com/#",
+      "error": "Could not extract any menu items",
+      "duration": 3483
+    },
+    {
+      "slug": "bottega-di-capri",
+      "name": "Bottega di Capri",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://bottegadicapribrookline.com/menu/",
+      "error": "Could not extract any menu items",
+      "duration": 5330
+    },
+    {
+      "slug": "sunset-cantina",
+      "name": "Sunset Cantina",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at http://www.sunsetcantinaboston.com/\nCall log:\n\u001b[2m  - navigating to \"http://www.sunsetcantinaboston.com/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 4480
+    },
+    {
+      "slug": "chilacates-chestnut-hill-4",
+      "name": "Chilacates Chestnut Hill #4",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.chilacatesmx.com/",
+      "error": "Could not extract any menu items",
+      "duration": 2864
+    },
+    {
+      "slug": "achilito-s-taqueria-cambridge",
+      "name": "Achilito's Taqueria - Cambridge",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.achilitos.com/",
+      "error": "Could not extract any menu items",
+      "duration": 6898
+    },
+    {
+      "slug": "chilacates",
+      "name": "Chilacates",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://chilacatesmx.com/",
+      "error": "Could not extract any menu items",
+      "duration": 4841
+    },
+    {
+      "slug": "maria-s-taqueria",
+      "name": "Maria's Taqueria",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.mariastaqueriaboston.com/menu.html",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 4584
+    },
+    {
+      "slug": "noah-s-kitchen",
+      "name": "Noah's Kitchen",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.noahs.kitchen/",
+      "error": "Could not extract any menu items",
+      "duration": 2034
+    },
+    {
+      "slug": "maguro-sushi-thai-ramen",
+      "name": "MAGURO Sushi Thai Ramen",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Download is starting\nCall log:\n\u001b[2m  - navigating to \"https://www.maguroboston.com/img/menu.pdf\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 10054
+    },
+    {
+      "slug": "kayuga",
+      "name": "Kayuga",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.bostonkayuga.com/",
+      "error": "Could not extract any menu items",
+      "duration": 2992
+    },
+    {
+      "slug": "super-fusion-brookline",
+      "name": "Super Fusion Brookline",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://superfusionbrookline.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 3563
+    },
+    {
+      "slug": "omori-izakaya-brookline",
+      "name": "Omori Izakaya ( Brookline )",
+      "status": "pdf_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.omori.net/",
+      "error": "Menu is only available as PDF (OCR required)",
+      "duration": 6242
+    },
+    {
+      "slug": "blossom-bar-at-sichuan-garden",
+      "name": "Blossom Bar at Sichuan Garden",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.blossombarbrookline.com/covidmenus",
+      "error": "Could not extract any menu items",
+      "duration": 3696
+    },
+    {
+      "slug": "kaojiu-restaurant",
+      "name": "Kaojiu Restaurant",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.kaojiurestaurant.com/",
+      "error": "Could not extract any menu items",
+      "duration": 2872
+    },
+    {
+      "slug": "mike-patty-s-breakfast-newton",
+      "name": "Mike & Patty's Breakfast | Newton",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.mikeandpattys.com/s/order",
+      "error": "Could not extract any menu items",
+      "duration": 4941
+    },
+    {
+      "slug": "glazed-bytes",
+      "name": "Glazed Bytes",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.glazedbytes.com/about-4-1",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 3626
+    },
+    {
+      "slug": "french-press-bakery-cafe",
+      "name": "French Press Bakery & Cafe",
+      "status": "pdf_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.frenchpressbakery.com/menu-3/",
+      "error": "Menu is only available as PDF (OCR required)",
+      "duration": 3572
+    },
+    {
+      "slug": "the-fika-spot",
+      "name": "The Fika Spot",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.thefikaspot.com/me-nu",
+      "error": "Could not extract any menu items",
+      "duration": 3350
+    },
+    {
+      "slug": "sultana-s-bakery-cafe",
+      "name": "Sultana's Bakery & Cafe",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://sultanascafe.com/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 49198
+    },
+    {
+      "slug": "ovenbird-cafe",
+      "name": "Ovenbird Cafe",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Download is starting\nCall log:\n\u001b[2m  - navigating to \"https://www.ovenbirdcafe.com/s/LunchFall2025.pdf\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 10172
+    },
+    {
+      "slug": "brighton-bodega",
+      "name": "Brighton Bodega",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.brightonbodega.com/",
+      "error": "Could not extract any menu items",
+      "duration": 3749
+    },
+    {
+      "slug": "porter-belly-s-pub",
+      "name": "Porter Belly's Pub",
+      "status": "pdf_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://porterbellyspub.com/dinner-menu",
+      "error": "Menu is only available as PDF (OCR required)",
+      "duration": 3585
+    },
+    {
+      "slug": "the-dooliner-irish-pub-and-restaurant",
+      "name": "The Dooliner Irish Pub and Restaurant",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.thedooliner.com/menu",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 3784
+    },
+    {
+      "slug": "sen-yai-thai-noodles",
+      "name": "Sen Yai Thai Noodles",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://order.toasttab.com/online/senyai",
+      "error": "Could not extract any menu items",
+      "duration": 4879
+    },
+    {
+      "slug": "rassa-featured-indian-restaurant-bar",
+      "name": "Rassa | Featured Indian Restaurant & Bar",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://rassaboston.com/rassa-lunch-menu/",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 5258
+    },
+    {
+      "slug": "mahaniyom",
+      "name": "Mahaniyom",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.mahaniyomboston.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 3677
+    },
+    {
+      "slug": "merai",
+      "name": "Merai",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.meraibar.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4086
+    },
+    {
+      "slug": "chennai-eats",
+      "name": "Chennai Eats",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://chennaieatsma.com/#633a02f5-79d3-45f4-9bf6-c41a18a45615",
+      "error": "Could not extract any menu items",
+      "duration": 3489
+    },
+    {
+      "slug": "spice-delight",
+      "name": "Spice Delight",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.spicedelightma.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 3926
+    },
+    {
+      "slug": "namaste-spice-indian-nepali-cuisine",
+      "name": "Namaste Spice | Indian & Nepali Cuisine",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://namastespice.in/",
+      "error": "Could not extract any menu items",
+      "duration": 5265
+    },
+    {
+      "slug": "so-kitchen",
+      "name": "So kitchen",
+      "status": "skipped",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "Third-party ordering platform, not a restaurant website",
+      "duration": 0
+    },
+    {
+      "slug": "al-wadi",
+      "name": "Al Wadi",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://www.alwadiboston.com/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 49177
+    },
+    {
+      "slug": "eagle-s-deli",
+      "name": "Eagle's Deli",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://eaglesdeli.com/",
+      "error": "Could not extract any menu items",
+      "duration": 12440
+    },
+    {
+      "slug": "sam-lagrassa-s",
+      "name": "Sam LaGrassa's",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.samlagrassas.com/",
+      "error": "Could not extract any menu items",
+      "duration": 15806
+    },
+    {
+      "slug": "moon-flower-house-allston",
+      "name": "Moon Flower House Allston",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://moonflowerhouseboston.com/",
+      "error": "Could not extract any menu items",
+      "duration": 3904
+    },
+    {
+      "slug": "moogy-s",
+      "name": "Moogy's",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://moogys.com/menu/",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 3512
+    },
+    {
+      "slug": "mcdonald-s",
+      "name": "McDonald's",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.mcdonalds.com/us/en-us/location/MA/BRIGHTON/1750-SOLDIERS-FLD-RD/4209.html?cid=RF:YXT:GMB::Clicks\nCall log:\n\u001b[2m  - navigating to \"https://www.m",
+      "duration": 4512
+    },
+    {
+      "slug": "wollaston-s-market",
+      "name": "Wollaston's Market",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.wollastonsmarket.com/Pages/22042/Menu/",
+      "error": "Could not extract any menu items",
+      "duration": 5362
+    },
+    {
+      "slug": "kimchipapi-allston",
+      "name": "kimchipapi allston",
+      "status": "pdf_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.kimchipapi.com/menu",
+      "error": "Menu is only available as PDF (OCR required)",
+      "duration": 3719
+    },
+    {
+      "slug": "bell86",
+      "name": "BELL86",
+      "status": "no_website",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "duration": 0
+    },
+    {
+      "slug": "hokkaido-ramen-santouka-allston",
+      "name": "Hokkaido Ramen Santouka Allston",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://santouka-usa.com/",
+      "error": "Could not extract any menu items",
+      "duration": 5646
+    },
+    {
+      "slug": "coreanos-allston",
+      "name": "Coreanos Allston",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://coreanosallston.com/",
+      "error": "Could not extract any menu items",
+      "duration": 2973
+    },
+    {
+      "slug": "soup-shack-brookline",
+      "name": "Soup Shack Brookline",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://soupshacknoodles.com/main-menu-2/",
+      "error": "Could not extract any menu items",
+      "duration": 4043
+    },
+    {
+      "slug": "hanmaru-gamjatang",
+      "name": "Hanmaru Gamjatang",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.hanmaruboston.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4606
+    },
+    {
+      "slug": "myung-dong-1st-ave",
+      "name": "Myung Dong 1st Ave",
+      "status": "no_website",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "duration": 0
+    },
+    {
+      "slug": "ganko-ittetsu-ramen",
+      "name": "Ganko Ittetsu Ramen",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Download is starting\nCall log:\n\u001b[2m  - navigating to \"https://gankoramen.com/brookline_menu.pdf\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 10489
+    },
+    {
+      "slug": "seoul-soulongtang",
+      "name": "Seoul Soulongtang",
+      "status": "no_website",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "duration": 0
+    },
+    {
+      "slug": "bonchon-allston",
+      "name": "Bonchon Allston",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://restaurants.bonchon.com/locations/ma/allston/123-brighton-ave",
+      "error": "Could not extract any menu items",
+      "duration": 2962
+    },
+    {
+      "slug": "kenzoku-mazesoba",
+      "name": "Kenzoku Mazesoba",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://kenzoku-mazesoba.sbs/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 49168
+    },
+    {
+      "slug": "naksan-korean-bbq",
+      "name": "Naksan Korean BBQ",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://naksanboston.com/menu/#main",
+      "error": "Could not extract any menu items",
+      "duration": 3765
+    },
+    {
+      "slug": "seoul-jangteo",
+      "name": "Seoul Jangteo",
+      "status": "no_website",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "duration": 0
+    },
+    {
+      "slug": "blue-ribbon-bbq",
+      "name": "Blue Ribbon BBQ",
+      "status": "success",
+      "itemCount": 5,
+      "categoryCount": 1,
+      "menuUrl": "http://blueribbonbbq.com/",
+      "duration": 5382
+    },
+    {
+      "slug": "grill-23-bar",
+      "name": "Grill 23 & Bar",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.grill23.com/private-dining\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "duration": 55012
+    },
+    {
+      "slug": "the-capital-grille-2",
+      "name": "The Capital Grille",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.thecapitalgrille.com/locations/ma/dedham/dedham-legacy-place/8072?cmpid=br:tcg_ag:ie_ch:loc_ca:TCGGMB_sn:gmb_gt:dedham",
+      "duration": 49212
+    },
+    {
+      "slug": "redstone-american-grill",
+      "name": "Redstone American Grill",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.redstonegrill.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 3366
+    },
+    {
+      "slug": "van-leeuwen-ice-cream",
+      "name": "Van Leeuwen Ice Cream",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://vanleeuwenicecream.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4215
+    },
+    {
+      "slug": "van-leeuwen-ice-cream-2",
+      "name": "Van Leeuwen Ice Cream",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://vanleeuwenicecream.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4091
+    },
+    {
+      "slug": "the-scoop-n-scootery",
+      "name": "The Scoop N Scootery",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.thescoopnscootery.com/menus",
+      "error": "Could not extract any menu items",
+      "duration": 3897
+    },
+    {
+      "slug": "van-leeuwen-ice-cream-3",
+      "name": "Van Leeuwen Ice Cream",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://vanleeuwenicecream.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4059
+    },
+    {
+      "slug": "j-p-licks",
+      "name": "J.P. Licks",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.jplicks.com/menu",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 4335
+    },
+    {
+      "slug": "j-p-licks-2",
+      "name": "J.P. Licks",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.jplicks.com/menu",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 4099
+    },
+    {
+      "slug": "froyoworld",
+      "name": "FroyoWorld",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://allstonfroyo.com/",
+      "error": "Could not extract any menu items",
+      "duration": 11383
+    },
+    {
+      "slug": "oasit-s-sweet-dessert-studio",
+      "name": "Oasit’s Sweet Dessert Studio",
+      "status": "skipped",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "Third-party ordering platform, not a restaurant website",
+      "duration": 1
+    },
+    {
+      "slug": "fomu",
+      "name": "FoMu",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.fomuicecream.com/fomu-catering-menu/",
+      "error": "Could not extract any menu items",
+      "duration": 4309
+    },
+    {
+      "slug": "j-p-licks-3",
+      "name": "J.P. Licks",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.jplicks.com/menu",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 9446
+    },
+    {
+      "slug": "j-p-licks-4",
+      "name": "J.P. Licks",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.jplicks.com/menu",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 4191
+    },
+    {
+      "slug": "j-p-licks-5",
+      "name": "J.P. Licks",
+      "status": "image_menu",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "http://www.jplicks.com/menu",
+      "error": "Menu is only available as image (OCR required)",
+      "duration": 4202
+    },
+    {
+      "slug": "van-leeuwen-ice-cream-4",
+      "name": "Van Leeuwen Ice Cream",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://vanleeuwenicecream.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 4595
+    },
+    {
+      "slug": "turkish-lazuri-cafe",
+      "name": "Turkish Lazuri Cafe",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://lazuricafe.com/menu",
+      "error": "Could not extract any menu items",
+      "duration": 3661
+    },
+    {
+      "slug": "ajeen-kebab-grill",
+      "name": "AJEEN Kebab Grill",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.ajeenboston.com/",
+      "error": "Could not extract any menu items",
+      "duration": 4879
+    },
+    {
+      "slug": "olba",
+      "name": "Olba",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://www.olba.me/menu",
+      "error": "Could not extract any menu items",
+      "duration": 5223
+    },
+    {
+      "slug": "azama-grill",
+      "name": "Azama Grill",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://azamagrill.co/menu",
+      "error": "Could not extract any menu items",
+      "duration": 5858
+    },
+    {
+      "slug": "sufra-mediterranean-food",
+      "name": "Sufra Mediterranean Food",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://order.toasttab.com/online/sufra-mediterranean-52-queensberry-st",
+      "error": "Could not extract any menu items",
+      "duration": 4555
+    },
+    {
+      "slug": "stardust-inspired-mediterranean-persian",
+      "name": "Stardust: Inspired Mediterranean , Persian",
+      "status": "no_website",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "duration": 0
+    },
+    {
+      "slug": "putterham-grille",
+      "name": "Putterham Grille",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "menuUrl": "https://putterhamgrill.com/index.html",
+      "error": "Could not extract any menu items",
+      "duration": 3905
+    },
+    {
+      "slug": "krasi",
+      "name": "Krasi",
+      "status": "failed",
+      "itemCount": 0,
+      "categoryCount": 0,
+      "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://krasiboston.com/?utm_source=google&utm_medium=organic&utm_campaign=Google_My_Business\", waiting until \"domcontentloaded\"\u001b[",
+      "duration": 49199
+    }
+  ]
+}

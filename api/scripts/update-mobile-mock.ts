@@ -1,0 +1,296 @@
+import 'dotenv/config';
+import * as fs from 'fs';
+import * as path from 'path';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('=== Updating Mobile Mock Data ===\n');
+
+  // Fetch all restaurants sorted by post count
+  const restaurants = await prisma.restaurant.findMany({
+    orderBy: { postCount: 'desc' },
+  });
+  console.log(`Fetched ${restaurants.length} restaurants`);
+
+  // Fetch top 50 posts with user and restaurant data
+  const posts = await prisma.post.findMany({
+    include: {
+      user: {
+        select: { id: true, username: true, name: true, profileImage: true, mealsDonated: true, mealStreak: true },
+      },
+      restaurant: {
+        select: { id: true, name: true, slug: true, city: true, latitude: true, longitude: true, averageRating: true, postCount: true },
+      },
+    },
+    orderBy: { likeCount: 'desc' },
+    take: 50,
+  });
+  console.log(`Fetched ${posts.length} top posts`);
+
+  // Fetch all users
+  const users = await prisma.user.findMany({
+    select: { id: true, username: true, name: true, profileImage: true, mealsDonated: true, mealStreak: true },
+    orderBy: { mealsDonated: 'desc' },
+    take: 20,
+  });
+  console.log(`Fetched ${users.length} users`);
+
+  // Fetch categories
+  const categories = await prisma.category.findMany({
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  // Fetch comments for top posts
+  const postIds = posts.map(p => p.id);
+  const comments = await prisma.comment.findMany({
+    where: { postId: { in: postIds } },
+    include: {
+      user: {
+        select: { id: true, username: true, name: true, profileImage: true },
+      },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  console.log(`Fetched ${comments.length} comments`);
+
+  // Build the mockData.ts content
+  const mockUsers = JSON.stringify(users, null, 2);
+
+  const mockRestaurants = JSON.stringify(
+    restaurants.map(r => ({
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      coverImage: r.coverImage,
+      address: r.address,
+      city: r.city,
+      state: r.state,
+      zipCode: r.zipCode,
+      latitude: r.latitude,
+      longitude: r.longitude,
+      phone: r.phone,
+      website: r.website,
+      postCount: r.postCount,
+      averageRating: r.averageRating,
+      mealsDonated: r.mealsDonated,
+      cuisineTypes: r.cuisineTypes,
+      priceLevel: r.priceLevel,
+      isClaimed: r.isClaimed,
+    })),
+    null,
+    2
+  );
+
+  // Format posts to match the Post interface
+  const formattedPosts = posts.map(p => ({
+    id: p.id,
+    userId: p.userId,
+    user: p.user,
+    dishName: p.dishName,
+    imageUrl: p.imageUrl,
+    rating: p.rating,
+    restaurantId: p.restaurantId,
+    restaurant: p.restaurant,
+    caption: p.caption,
+    price: p.price,
+    dietaryTags: p.dietaryTags,
+    cuisineType: p.cuisineType,
+    isPrivate: p.isPrivate,
+    donationMade: p.donationMade,
+    mealsDonated: p.mealsDonated,
+    likeCount: p.likeCount,
+    commentCount: p.commentCount,
+    saveCount: p.saveCount,
+    createdAt: p.createdAt.toISOString(),
+    isLiked: Math.random() > 0.6,
+    isSaved: Math.random() > 0.7,
+  }));
+
+  const mockCategories = categories.length > 0
+    ? JSON.stringify(categories.map(c => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        iconUrl: c.iconUrl,
+        sortOrder: c.sortOrder,
+      })), null, 2)
+    : `[
+  { id: 'cat-1', name: 'Pizza', slug: 'pizza', iconUrl: '🍕', sortOrder: 1 },
+  { id: 'cat-2', name: 'Mexican', slug: 'mexican', iconUrl: '🌮', sortOrder: 2 },
+  { id: 'cat-3', name: 'Chinese', slug: 'chinese', iconUrl: '🥡', sortOrder: 3 },
+  { id: 'cat-4', name: 'Seafood', slug: 'seafood', iconUrl: '🦞', sortOrder: 4 },
+  { id: 'cat-5', name: 'Dessert', slug: 'dessert', iconUrl: '🍦', sortOrder: 5 },
+  { id: 'cat-6', name: 'Japanese', slug: 'japanese', iconUrl: '🍣', sortOrder: 6 },
+  { id: 'cat-7', name: 'Indian', slug: 'indian', iconUrl: '🍛', sortOrder: 7 },
+  { id: 'cat-8', name: 'Burgers', slug: 'burgers', iconUrl: '🍔', sortOrder: 8 },
+  { id: 'cat-9', name: 'Thai', slug: 'thai', iconUrl: '🍜', sortOrder: 9 },
+  { id: 'cat-10', name: 'Coffee', slug: 'coffee', iconUrl: '☕', sortOrder: 10 },
+  { id: 'cat-11', name: 'Korean', slug: 'korean', iconUrl: '🥘', sortOrder: 11 },
+  { id: 'cat-12', name: 'BBQ', slug: 'bbq', iconUrl: '🥩', sortOrder: 12 },
+]`;
+
+  // Build leaderboard from users
+  const leaderboardEntries = users.slice(0, 7).map((u, i) => ({
+    ...u,
+    rank: i + 1,
+  }));
+  leaderboardEntries.push({
+    id: 'current-user',
+    username: 'you',
+    name: 'You',
+    profileImage: null as any,
+    mealsDonated: 47,
+    mealStreak: 8,
+    rank: 15,
+  });
+
+  // Format comments to match the Comment interface
+  const formattedComments = comments.map(c => ({
+    id: c.id,
+    postId: c.postId,
+    userId: c.userId,
+    user: c.user,
+    content: c.content,
+    createdAt: c.createdAt.toISOString(),
+  }));
+
+  const content = `// AUTO-GENERATED by scripts/update-mobile-mock.ts — do not edit manually
+// Generated on ${new Date().toISOString()}
+// ${restaurants.length} restaurants, ${posts.length} posts, ${users.length} users, ${comments.length} comments
+import type { Post, Restaurant, Collection, GlobalStats, PersonalStats, Achievement, LeaderboardEntry, Category, Comment } from '../types';
+
+// Mock Users - BC students and locals
+export const mockUsers = ${mockUsers};
+
+// REAL restaurants near Boston College / Chestnut Hill / Newton / Brighton
+export const mockRestaurants: Restaurant[] = ${mockRestaurants};
+
+// Simple restaurant preview for posts
+const restaurantPreviews = mockRestaurants.map(r => ({
+  id: r.id,
+  name: r.name,
+  slug: r.slug,
+  city: r.city,
+  latitude: r.latitude,
+  longitude: r.longitude,
+  averageRating: r.averageRating,
+  postCount: r.postCount,
+}));
+
+// Top posts with real food photos
+export const mockPosts: Post[] = ${JSON.stringify(formattedPosts, null, 2)};
+
+// Comments for posts
+export const mockComments: Comment[] = ${JSON.stringify(formattedComments, null, 2)};
+
+// Global stats for Impact page
+export const mockGlobalStats: GlobalStats = {
+  id: 'global-1',
+  totalMeals: 125847,
+  currentGoal: 150000,
+  goalDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  totalDonors: 8934,
+};
+
+// Personal stats for Impact page
+export const mockPersonalStats: PersonalStats = {
+  mealsDonated: 47,
+  mealsBalance: 5,
+  postCount: 23,
+  mealStreak: 8,
+  totalViews: 1234,
+  restaurantsVisited: 15,
+  dishesSaved: 42,
+};
+
+// Mock Collections
+export const mockCollections: Collection[] = [
+  {
+    id: 'coll-1',
+    userId: 'current-user',
+    name: 'Must Try',
+    description: 'Places I need to visit around BC',
+    isPublic: true,
+    isDefault: true,
+    itemCount: 12,
+    previewImages: mockPosts.slice(0, 3).map(p => p.imageUrl.replace('w=800', 'w=200')),
+    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'coll-2',
+    userId: 'current-user',
+    name: 'Date Night Spots',
+    description: 'Romantic restaurants in Brookline & Newton',
+    isPublic: true,
+    isDefault: false,
+    itemCount: 8,
+    previewImages: mockPosts.slice(3, 5).map(p => p.imageUrl.replace('w=800', 'w=200')),
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'coll-3',
+    userId: 'current-user',
+    name: 'Late Night Eats',
+    description: 'Open after midnight near campus',
+    isPublic: false,
+    isDefault: false,
+    itemCount: 5,
+    previewImages: mockPosts.slice(5, 6).map(p => p.imageUrl.replace('w=800', 'w=200')),
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'coll-4',
+    userId: 'current-user',
+    name: 'Best Pizza',
+    description: 'Ranking pizza spots near BC',
+    isPublic: true,
+    isDefault: false,
+    itemCount: 6,
+    previewImages: mockPosts.filter(p => p.cuisineType === 'Pizza' || p.cuisineType === 'Italian').slice(0, 2).map(p => p.imageUrl.replace('w=800', 'w=200')),
+    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+// Mock Leaderboard
+export const mockLeaderboard: LeaderboardEntry[] = ${JSON.stringify(leaderboardEntries, null, 2).replace('"rank": 15\n  }', '"rank": 15,\n    "isCurrentUser": true\n  }')};
+
+// Mock Achievements
+export const mockAchievements: Achievement[] = [
+  { id: 'ach-1', name: 'First Bite', slug: 'first-bite', description: 'Share your first dish', iconUrl: '🍽️', type: 'posts', threshold: 1, tier: 'bronze', sortOrder: 1 },
+  { id: 'ach-2', name: 'Meal Hero', slug: 'meal-hero', description: 'Donate 10 meals', iconUrl: '🦸', type: 'donations', threshold: 10, tier: 'bronze', sortOrder: 2 },
+  { id: 'ach-3', name: 'Week Warrior', slug: 'week-warrior', description: 'Maintain a 7-day streak', iconUrl: '🔥', type: 'streak', threshold: 7, tier: 'silver', sortOrder: 3 },
+  { id: 'ach-4', name: 'Food Influencer', slug: 'food-influencer', description: 'Get 100 likes on a post', iconUrl: '⭐', type: 'social', threshold: 100, tier: 'gold', sortOrder: 4 },
+  { id: 'ach-5', name: 'BC Explorer', slug: 'bc-explorer', description: 'Visit 10 restaurants near campus', iconUrl: '🦅', type: 'exploration', threshold: 10, tier: 'silver', sortOrder: 5 },
+  { id: 'ach-6', name: 'Taste Tester', slug: 'taste-tester', description: 'Post 5 dish reviews', iconUrl: '🧪', type: 'posts', threshold: 5, tier: 'bronze', sortOrder: 6 },
+  { id: 'ach-7', name: 'Generous Soul', slug: 'generous-soul', description: 'Donate 50 meals', iconUrl: '💛', type: 'donations', threshold: 50, tier: 'silver', sortOrder: 7 },
+  { id: 'ach-8', name: 'Month Master', slug: 'month-master', description: 'Maintain a 30-day streak', iconUrl: '🏆', type: 'streak', threshold: 30, tier: 'gold', sortOrder: 8 },
+  { id: 'ach-9', name: 'Social Butterfly', slug: 'social-butterfly', description: 'Follow 20 foodies', iconUrl: '🦋', type: 'social', threshold: 20, tier: 'bronze', sortOrder: 9 },
+  { id: 'ach-10', name: 'City Explorer', slug: 'city-explorer', description: 'Visit 25 restaurants', iconUrl: '🗺️', type: 'exploration', threshold: 25, tier: 'gold', sortOrder: 10 },
+];
+
+// Categories for Explore
+export const mockCategories: Category[] = ${mockCategories};
+`;
+
+  const outputPath = path.join(__dirname, '..', '..', 'mobile', 'lib', 'mockData.ts');
+  fs.writeFileSync(outputPath, content);
+  console.log(`\nUpdated ${outputPath}`);
+  console.log(`  ${restaurants.length} restaurants`);
+  console.log(`  ${posts.length} posts`);
+  console.log(`  ${comments.length} comments`);
+  console.log(`  ${users.length} users`);
+  console.log(`  ${categories.length} categories`);
+}
+
+main()
+  .catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

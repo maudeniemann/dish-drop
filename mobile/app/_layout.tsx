@@ -1,11 +1,13 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../contexts/AuthContext';
+import { LocationProvider } from '../contexts/LocationContext';
 import { Colors } from '../lib/constants';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
+      <LocationProvider>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -56,6 +58,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="profile/edit"
+          options={{
+            title: 'Edit Profile',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen
           name="collection/[collectionId]"
           options={{
             title: 'Collection',
@@ -63,6 +72,7 @@ export default function RootLayout() {
           }}
         />
       </Stack>
+      </LocationProvider>
     </AuthProvider>
   );
 }

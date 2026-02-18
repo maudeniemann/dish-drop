@@ -156,6 +156,43 @@ export type FeedType = 'friends' | 'nearby';
 // Default avatar
 export const DEFAULT_AVATAR = 'https://via.placeholder.com/150/1a1a1a/1acae7?text=DD';
 
+// Distance calculation (haversine formula, returns miles)
+export function calculateDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  const R = 3958.8; // Earth's radius in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Distance filter presets (miles)
+export const DISTANCE_OPTIONS = [
+  { value: 0.5, label: '0.5 mi' },
+  { value: 1, label: '1 mi' },
+  { value: 3, label: '3 mi' },
+  { value: 5, label: '5 mi' },
+  { value: 10, label: '10 mi' },
+];
+
+// Rating filter presets
+export const RATING_OPTIONS = [
+  { value: 0, label: 'Any' },
+  { value: 7, label: '7+' },
+  { value: 8, label: '8+' },
+  { value: 9, label: '9+' },
+];
+
 // Image dimensions
 export const ImageDimensions = {
   thumbnail: { width: 150, height: 150 },

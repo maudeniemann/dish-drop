@@ -17,11 +17,11 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../lib/constants';
-import { api } from '../../lib/api';
-import { useAuth } from '../../contexts/AuthContext';
-import type { Collection } from '../../types';
-import { mockPosts, mockUsers, mockRestaurants } from '../../lib/mockData';
+import { Colors, Spacing, FontSizes, BorderRadius } from '../lib/constants';
+import { api } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
+import type { Collection } from '../types';
+import { mockPosts, mockUsers, mockRestaurants } from '../lib/mockData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.72;
@@ -336,9 +336,16 @@ function formatCount(n: number): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// PROPS
+// ═══════════════════════════════════════════════════════════════════
+interface CollectionsViewProps {
+  paddingTop?: number;
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════
-export default function ListsScreen() {
+export default function CollectionsView({ paddingTop }: CollectionsViewProps) {
   const { isAuthenticated } = useAuth();
   const [myCollections, setMyCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -401,19 +408,6 @@ export default function ListsScreen() {
   const toggleFollow = (userId: string) => {
     setFollowState(prev => ({ ...prev, [userId]: !prev[userId] }));
   };
-
-  // ─── Section: Header ────────────────────────────────────────────
-  const renderHeader = () => (
-    <View style={styles.pageHeader}>
-      <Text style={styles.pageTitle}>Collections</Text>
-      <Pressable
-        style={styles.searchButton}
-        onPress={() => {/* TODO: navigate to search */}}
-      >
-        <Ionicons name="search" size={22} color={Colors.text} />
-      </Pressable>
-    </View>
-  );
 
   // ─── Section: My Collections (horizontal) ──────────────────────
   const renderMyCollections = () => (
@@ -756,7 +750,7 @@ export default function ListsScreen() {
           />
         }
       >
-        {renderHeader()}
+        {paddingTop != null && <View style={{ height: paddingTop }} />}
         {myCollections.length > 0 && renderMyCollections()}
         {renderFeaturedPlaylists()}
         {renderCreatorsNearYou()}
@@ -839,29 +833,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.background,
-  },
-
-  // ─── Page Header ────────────────────────────────────────────────
-  pageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingTop: 60,
-    paddingBottom: Spacing.md,
-  },
-  pageTitle: {
-    color: Colors.text,
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  searchButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   // ─── Section Layout ─────────────────────────────────────────────

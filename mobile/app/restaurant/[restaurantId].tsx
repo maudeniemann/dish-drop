@@ -17,11 +17,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius, getRatingColor, PRICE_LEVELS } from '../../lib/constants';
 import { api } from '../../lib/api';
 import type { Restaurant, Post } from '../../types';
+import MenuView from '../../components/MenuView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const POST_SIZE = (SCREEN_WIDTH - Spacing.md * 4) / 3;
+const POST_SIZE = (SCREEN_WIDTH - Spacing.md * 2) / 2;
 
 type SortOption = 'recent' | 'rating' | 'popular';
+type ViewTab = 'posts' | 'menu';
 
 export default function RestaurantScreen() {
   const { restaurantId } = useLocalSearchParams<{ restaurantId: string }>();
@@ -30,6 +32,7 @@ export default function RestaurantScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recent');
+  const [viewTab, setViewTab] = useState<ViewTab>('posts');
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   const loadRestaurant = useCallback(async () => {
@@ -232,50 +235,86 @@ export default function RestaurantScreen() {
           )}
         </View>
 
-        {/* Sort Options */}
-        <View style={styles.sortRow}>
-          <Text style={styles.sortLabel}>Sort by:</Text>
-          <View style={styles.sortOptions}>
-            {(['recent', 'rating', 'popular'] as SortOption[]).map((option) => (
-              <Pressable
-                key={option}
-                style={[styles.sortOption, sortBy === option && styles.sortOptionActive]}
-                onPress={() => setSortBy(option)}
-              >
-                <Text
-                  style={[
-                    styles.sortOptionText,
-                    sortBy === option && styles.sortOptionTextActive,
-                  ]}
-                >
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        {/* Posts / Menu Tab Bar */}
+        <View style={styles.viewTabBar}>
+          <Pressable
+            style={[styles.viewTab, viewTab === 'posts' && styles.viewTabActive]}
+            onPress={() => setViewTab('posts')}
+          >
+            <Ionicons
+              name={viewTab === 'posts' ? 'grid' : 'grid-outline'}
+              size={18}
+              color={viewTab === 'posts' ? Colors.accent : Colors.textSecondary}
+            />
+            <Text style={[styles.viewTabText, viewTab === 'posts' && styles.viewTabTextActive]}>
+              Posts
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.viewTab, viewTab === 'menu' && styles.viewTabActive]}
+            onPress={() => setViewTab('menu')}
+          >
+            <Ionicons
+              name={viewTab === 'menu' ? 'book' : 'book-outline'}
+              size={18}
+              color={viewTab === 'menu' ? Colors.accent : Colors.textSecondary}
+            />
+            <Text style={[styles.viewTabText, viewTab === 'menu' && styles.viewTabTextActive]}>
+              Menu
+            </Text>
+          </Pressable>
         </View>
 
-        {/* Posts Grid */}
-        <FlatList
-          data={posts}
-          renderItem={renderPostItem}
-          keyExtractor={(item) => item.id}
-          numColumns={3}
-          scrollEnabled={false}
-          contentContainerStyle={styles.postsGrid}
-          onEndReached={() => {
-            if (nextCursor) loadPosts();
-          }}
-          ListEmptyComponent={
-            <View style={styles.emptyPosts}>
-              <Ionicons name="camera-outline" size={48} color={Colors.textMuted} />
-              <Text style={styles.emptyPostsText}>No dishes posted yet</Text>
-              <Text style={styles.emptyPostsSubtext}>
-                Be the first to share a dish from here!
-              </Text>
+        {viewTab === 'posts' ? (
+          <>
+            {/* Sort Options */}
+            <View style={styles.sortRow}>
+              <Text style={styles.sortLabel}>Sort by:</Text>
+              <View style={styles.sortOptions}>
+                {(['recent', 'rating', 'popular'] as SortOption[]).map((option) => (
+                  <Pressable
+                    key={option}
+                    style={[styles.sortOption, sortBy === option && styles.sortOptionActive]}
+                    onPress={() => setSortBy(option)}
+                  >
+                    <Text
+                      style={[
+                        styles.sortOptionText,
+                        sortBy === option && styles.sortOptionTextActive,
+                      ]}
+                    >
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          }
-        />
+
+            {/* Posts Grid */}
+            <FlatList
+              data={posts}
+              renderItem={renderPostItem}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              scrollEnabled={false}
+              contentContainerStyle={styles.postsGrid}
+              onEndReached={() => {
+                if (nextCursor) loadPosts();
+              }}
+              ListEmptyComponent={
+                <View style={styles.emptyPosts}>
+                  <Ionicons name="camera-outline" size={48} color={Colors.textMuted} />
+                  <Text style={styles.emptyPostsText}>No dishes posted yet</Text>
+                  <Text style={styles.emptyPostsSubtext}>
+                    Be the first to share a dish from here!
+                  </Text>
+                </View>
+              }
+            />
+          </>
+        ) : (
+          <MenuView restaurantId={restaurantId!} posts={posts} />
+        )}
       </ScrollView>
     </>
   );
@@ -425,6 +464,33 @@ const styles = StyleSheet.create({
   },
   orderButtonText: {
     color: Colors.text,
+  },
+  viewTabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginHorizontal: Spacing.md,
+  },
+  viewTab: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    gap: Spacing.xs,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  viewTabActive: {
+    borderBottomColor: Colors.accent,
+  },
+  viewTabText: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+  viewTabTextActive: {
+    color: Colors.accent,
   },
   sortRow: {
     flexDirection: 'row',

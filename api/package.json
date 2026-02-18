@@ -11,7 +11,14 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "ts-node prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "fetch-restaurants": "ts-node --transpile-only scripts/fetch-restaurants.ts",
+    "seed-restaurants": "ts-node --transpile-only scripts/seed-restaurants.ts",
+    "generate-content": "ts-node --transpile-only scripts/generate-mock-content.ts",
+    "update-mobile-mock": "ts-node --transpile-only scripts/update-mobile-mock.ts",
+    "scrape-menus": "ts-node --transpile-only scripts/scrape-menus.ts",
+    "import-menus": "ts-node --transpile-only scripts/import-menus.ts",
+    "seed:full": "npm run db:seed && npm run fetch-restaurants && npm run seed-restaurants && npm run generate-content && npm run update-mobile-mock"
   },
   "keywords": [
     "food",
@@ -26,6 +33,7 @@
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
+    "dotenv": "^17.3.0",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "uuid": "^13.0.0",
@@ -39,6 +47,7 @@
     "@types/node": "^25.2.1",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.11",
+    "playwright": "^1.58.2",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

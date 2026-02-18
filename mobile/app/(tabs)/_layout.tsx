@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../lib/constants';
 
 type IconName = 'home' | 'home-outline' | 'compass' | 'compass-outline' |
-  'add-circle' | 'add-circle-outline' | 'bookmark' | 'bookmark-outline' |
+  'add-circle' | 'add-circle-outline' | 'person' | 'person-outline' |
   'heart' | 'heart-outline';
 
 function TabBarIcon({ name, color, size }: { name: IconName; color: string; size: number }) {
@@ -13,7 +13,7 @@ function TabBarIcon({ name, color, size }: { name: IconName; color: string; size
 
 // Custom create button (larger, centered)
 function CreateTabButton({ onPress, accessibilityState }: any) {
-  const focused = accessibilityState.selected;
+  const focused = accessibilityState?.selected ?? false;
 
   return (
     <Pressable
@@ -98,20 +98,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="lists"
-        options={{
-          title: 'Lists',
-          headerTitle: 'My Collections',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? 'bookmark' : 'bookmark-outline'}
-              color={color}
-              size={24}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="impact"
         options={{
           title: 'Impact',
@@ -123,6 +109,27 @@ export default function TabLayout() {
               size={24}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? 'person' : 'person-outline'}
+              color={color}
+              size={24}
+            />
+          ),
+        }}
+      />
+      {/* Hidden - Collections content moved into Explore tab */}
+      <Tabs.Screen
+        name="lists"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
