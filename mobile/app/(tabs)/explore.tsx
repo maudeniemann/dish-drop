@@ -500,7 +500,7 @@ export default function ExploreScreen() {
       {exploreMode === 'collections' ? (
         <CollectionsView paddingTop={0} />
       ) : (
-      <>
+      <View style={{ flex: 1 }}>
       {/* Search Bar */}
       <View style={styles.searchOverlay}>
         <Pressable
@@ -726,7 +726,7 @@ export default function ExploreScreen() {
         onApply={setFilters}
         onClose={() => setShowFilterModal(false)}
       />
-      </>
+      </View>
       )}
     </View>
   );
