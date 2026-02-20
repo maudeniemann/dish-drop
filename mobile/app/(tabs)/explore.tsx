@@ -62,10 +62,9 @@ export default function ExploreScreen() {
   });
   const activeFilterCount = countExploreFilters(filters);
 
-  // When location coordinates become available, set map region and load restaurants
+  // When location coordinates become available, center map and load restaurants
   useEffect(() => {
-    if (coords && !hasInitializedRef.current) {
-      hasInitializedRef.current = true;
+    if (coords) {
       const newRegion = {
         latitude: coords.latitude,
         longitude: coords.longitude,
@@ -74,7 +73,13 @@ export default function ExploreScreen() {
       };
       setRegion(newRegion);
       setCurrentRegion(newRegion);
-      loadRestaurants(coords.latitude, coords.longitude);
+      // Animate map if already rendered
+      mapRef.current?.animateToRegion(newRegion, 500);
+      // Only load restaurants once
+      if (!hasInitializedRef.current) {
+        hasInitializedRef.current = true;
+        loadRestaurants(coords.latitude, coords.longitude);
+      }
     }
   }, [coords]);
 
