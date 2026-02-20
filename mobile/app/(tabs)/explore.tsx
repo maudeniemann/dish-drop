@@ -756,6 +756,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderBottomWidth: 0.5,
     borderBottomColor: Colors.border,
+    zIndex: 20,
+    elevation: 20,
   },
   modeToggle: {
     flexDirection: 'row',
