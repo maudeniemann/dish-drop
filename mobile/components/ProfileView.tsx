@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   Pressable,
-  FlatList,
   RefreshControl,
   ActivityIndicator,
   Dimensions,
@@ -19,7 +18,9 @@ import { useAuth } from '../contexts/AuthContext';
 import type { User, Post, Collection } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const POST_SIZE = (SCREEN_WIDTH - Spacing.md * 2) / 2;
+const GRID_GAP = Spacing.xs;
+const NUM_COLUMNS = 3;
+const POST_SIZE = Math.floor((SCREEN_WIDTH - Spacing.md * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS);
 
 type Tab = 'posts' | 'likes' | 'collections';
 
@@ -146,33 +147,6 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
       console.error('Error toggling follow:', error);
     }
   };
-
-  const renderPostItem = ({ item: post }: { item: Post }) => (
-    <Pressable
-      style={styles.postItem}
-      onPress={() => router.push(`/post/${post.id}`)}
-    >
-      <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
-      <View style={[styles.postRating, { backgroundColor: getRatingColor(post.rating) }]}>
-        <Text style={styles.postRatingText}>{post.rating}</Text>
-      </View>
-    </Pressable>
-  );
-
-  const renderCollectionItem = ({ item: collection }: { item: Collection }) => (
-    <Pressable
-      style={styles.collectionItem}
-      onPress={() => router.push(`/collection/${collection.id}`)}
-    >
-      <View style={styles.collectionPreview}>
-        {collection.previewImages?.slice(0, 4).map((url, i) => (
-          <Image key={i} source={{ uri: url }} style={styles.collectionPreviewImage} />
-        ))}
-      </View>
-      <Text style={styles.collectionName}>{collection.name}</Text>
-      <Text style={styles.collectionCount}>{collection.itemCount} dishes</Text>
-    </Pressable>
-  );
 
   if (isLoading) {
     return (
@@ -326,51 +300,75 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
 
         {/* Tab Content */}
         {activeTab === 'posts' && (
-          <FlatList
-            data={posts}
-            renderItem={renderPostItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.postsGrid}
-            ListEmptyComponent={
-              <View style={styles.emptyTab}>
-                <Text style={styles.emptyTabText}>No posts yet</Text>
-              </View>
-            }
-          />
+          posts.length > 0 ? (
+            <View style={styles.postsGrid}>
+              {posts.map((post) => (
+                <Pressable
+                  key={post.id}
+                  style={styles.postItem}
+                  onPress={() => router.push(`/post/${post.id}`)}
+                >
+                  <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+                  <View style={[styles.postRating, { backgroundColor: getRatingColor(post.rating) }]}>
+                    <Text style={styles.postRatingText}>{post.rating}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabText}>No posts yet</Text>
+            </View>
+          )
         )}
 
         {activeTab === 'likes' && (
-          <FlatList
-            data={likes}
-            renderItem={renderPostItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.postsGrid}
-            ListEmptyComponent={
-              <View style={styles.emptyTab}>
-                <Text style={styles.emptyTabText}>No liked posts</Text>
-              </View>
-            }
-          />
+          likes.length > 0 ? (
+            <View style={styles.postsGrid}>
+              {likes.map((post) => (
+                <Pressable
+                  key={post.id}
+                  style={styles.postItem}
+                  onPress={() => router.push(`/post/${post.id}`)}
+                >
+                  <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+                  <View style={[styles.postRating, { backgroundColor: getRatingColor(post.rating) }]}>
+                    <Text style={styles.postRatingText}>{post.rating}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabText}>No liked posts</Text>
+            </View>
+          )
         )}
 
         {activeTab === 'collections' && (
-          <FlatList
-            data={collections}
-            renderItem={renderCollectionItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.collectionsGrid}
-            ListEmptyComponent={
-              <View style={styles.emptyTab}>
-                <Text style={styles.emptyTabText}>No public collections</Text>
-              </View>
-            }
-          />
+          collections.length > 0 ? (
+            <View style={styles.collectionsGrid}>
+              {collections.map((collection) => (
+                <Pressable
+                  key={collection.id}
+                  style={styles.collectionItem}
+                  onPress={() => router.push(`/collection/${collection.id}`)}
+                >
+                  <View style={styles.collectionPreview}>
+                    {collection.previewImages?.slice(0, 4).map((url, i) => (
+                      <Image key={i} source={{ uri: url }} style={styles.collectionPreviewImage} />
+                    ))}
+                  </View>
+                  <Text style={styles.collectionName}>{collection.name}</Text>
+                  <Text style={styles.collectionCount}>{collection.itemCount} dishes</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabText}>No public collections</Text>
+            </View>
+          )
         )}
       </ScrollView>
     </>
@@ -511,12 +509,16 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.accent,
   },
   postsGrid: {
-    padding: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    gap: GRID_GAP,
   },
   postItem: {
     width: POST_SIZE,
     height: POST_SIZE,
-    margin: Spacing.xs,
     position: 'relative',
   },
   postImage: {
@@ -539,11 +541,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   collectionsGrid: {
-    padding: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    gap: GRID_GAP,
   },
   collectionItem: {
-    width: (SCREEN_WIDTH - Spacing.md * 3) / 2,
-    margin: Spacing.xs,
+    width: POST_SIZE,
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',

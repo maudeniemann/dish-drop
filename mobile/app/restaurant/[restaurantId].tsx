@@ -221,6 +221,12 @@ export default function RestaurantScreen() {
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
+          {restaurant.website && (
+            <Pressable style={[styles.actionButton, styles.websiteButton]} onPress={() => Linking.openURL(restaurant.website!)}>
+              <Ionicons name="globe-outline" size={20} color={Colors.accent} />
+              <Text style={[styles.actionButtonText, styles.websiteButtonText]}>Website</Text>
+            </Pressable>
+          )}
           {restaurant.reservationUrl && (
             <Pressable style={styles.actionButton} onPress={openReservation}>
               <Ionicons name="calendar" size={20} color={Colors.background} />
@@ -456,6 +462,14 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: FontSizes.md,
     fontWeight: '600',
+  },
+  websiteButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: Colors.accent,
+  },
+  websiteButtonText: {
+    color: Colors.accent,
   },
   orderButton: {
     backgroundColor: Colors.card,

@@ -8,7 +8,6 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
-  Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +16,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import FlashSponsorships from '../../components/FlashSponsorships';
 import RewardsSection from '../../components/RewardsSection';
-import type { GlobalStats, PersonalStats, Team, Achievement, LeaderboardEntry, Coupon, FlashSponsorship } from '../../types';
+import type { GlobalStats, PersonalStats, Team, Achievement, LeaderboardEntry } from '../../types';
 
 export default function ImpactScreen() {
   const { user, isAuthenticated } = useAuth();
@@ -29,10 +28,6 @@ export default function ImpactScreen() {
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [friendsLeaderboard, setFriendsLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [coinBalance, setCoinBalance] = useState(0);
-  const [coinThresholds, setCoinThresholds] = useState<{ coins: number; label: string; reward: string }[]>([]);
-  const [sponsorship, setSponsorship] = useState<FlashSponsorship | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -40,21 +35,15 @@ export default function ImpactScreen() {
       setGlobalStats(global);
 
       if (isAuthenticated) {
-        const [personalRes, leaderboardRes, couponRes, sponsorshipRes] = await Promise.all([
+        const [personalRes, leaderboardRes] = await Promise.all([
           api.getPersonalStats(),
           api.getFriendsLeaderboard(5),
-          api.getCoupons(),
-          api.getActiveSponsorship(),
         ]);
 
         setPersonalStats(personalRes.stats ?? null);
         setCurrentTeam(personalRes.team ?? null);
         setAchievements(personalRes.achievements ?? []);
         setFriendsLeaderboard(leaderboardRes.leaderboard ?? []);
-        setCoupons(couponRes.coupons ?? []);
-        setCoinBalance(couponRes.coinBalance ?? 0);
-        setCoinThresholds(couponRes.thresholds ?? []);
-        setSponsorship(sponsorshipRes.sponsorship ?? null);
       }
     } catch (error) {
       console.error('Error loading impact data:', error);
@@ -85,16 +74,6 @@ export default function ImpactScreen() {
     ? Math.min((globalStats.totalMeals / globalStats.currentGoal) * 100, 100)
     : 0;
 
-  const nextThreshold = coinThresholds.find(t => t.coins > coinBalance);
-  const currentThresholdIdx = coinThresholds.findIndex(t => t.coins > coinBalance);
-  const prevThreshold = currentThresholdIdx > 0 ? coinThresholds[currentThresholdIdx - 1]?.coins || 0 : 0;
-  const coinProgress = nextThreshold
-    ? ((coinBalance - prevThreshold) / (nextThreshold.coins - prevThreshold)) * 100
-    : 100;
-
-  const affordableCoupons = coupons.filter(c => c.coinCost <= coinBalance && !c.isRedeemed);
-  const lockedCoupons = coupons.filter(c => c.coinCost > coinBalance && !c.isRedeemed);
-
   return (
     <ScrollView
       style={styles.container}
@@ -106,7 +85,7 @@ export default function ImpactScreen() {
         />
       }
     >
-      {/* Global Counter */}
+      {/* 1. Community Goal / Global Stats */}
       <View style={styles.globalSection}>
         <View style={styles.globalCounter}>
           <Text style={styles.counterLabel}>Meals Donated</Text>
@@ -134,133 +113,12 @@ export default function ImpactScreen() {
         </View>
       </View>
 
-      {/* Flash Sponsorships - visible to everyone */}
+      {/* 2. Flash Sponsorships */}
       <FlashSponsorships limit={3} />
 
       {isAuthenticated ? (
         <>
-          {/* Rewards Section */}
-          <RewardsSection limit={6} />
-
-          {/* Coin Balance & Progress */}
-          <View style={styles.section}>
-            <View style={styles.coinBalanceCard}>
-              <View style={styles.coinBalanceLeft}>
-                <View style={styles.coinIconCircle}>
-                  <Ionicons name="flash" size={28} color={Colors.warning} />
-                </View>
-                <View>
-                  <Text style={styles.coinBalanceLabel}>Your Coins</Text>
-                  <Text style={styles.coinBalanceValue}>{coinBalance}</Text>
-                </View>
-              </View>
-              <View style={styles.coinBalanceRight}>
-                <Text style={styles.coinEarnText}>Earn 1 coin per post</Text>
-                {nextThreshold && (
-                  <View style={styles.coinProgressContainer}>
-                    <View style={styles.coinProgressBar}>
-                      <View style={[styles.coinProgressFill, { width: `${Math.min(coinProgress, 100)}%` }]} />
-                    </View>
-                    <Text style={styles.coinNextText}>
-                      {nextThreshold.coins - coinBalance} more to {nextThreshold.reward.toLowerCase()}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-
-          {/* Flash Sponsorship */}
-          {sponsorship && sponsorship.isActive && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Flash Sponsorship</Text>
-              <View style={styles.flashCard}>
-                <Image source={{ uri: sponsorship.bannerImageUrl }} style={styles.flashImage} />
-                <View style={styles.flashOverlay} />
-                <View style={styles.flashContent}>
-                  <View style={styles.flashLiveBadge}>
-                    <View style={styles.flashLiveDot} />
-                    <Text style={styles.flashLiveText}>ACTIVE</Text>
-                  </View>
-                  <Text style={styles.flashTitle}>{sponsorship.title}</Text>
-                  <Text style={styles.flashDesc} numberOfLines={2}>{sponsorship.description}</Text>
-                  <View style={styles.flashProgressRow}>
-                    <View style={styles.flashProgressBar}>
-                      <View style={[styles.flashProgressFill, { width: `${(sponsorship.currentDrops / sponsorship.dropsRequired) * 100}%` }]} />
-                    </View>
-                  </View>
-                  <View style={styles.flashStatsRow}>
-                    <Text style={styles.flashStatLabel}>
-                      <Text style={styles.flashStatValue}>{sponsorship.currentDrops}</Text>/{sponsorship.dropsRequired} drops
-                    </Text>
-                    <Text style={styles.flashStatLabel}>
-                      <Text style={styles.flashStatValue}>{sponsorship.currentMeals}</Text>/{sponsorship.totalMealsGoal} meals pledged
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Coupon Marketplace */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Coupon Rewards</Text>
-            {affordableCoupons.length > 0 && (
-              <>
-                <Text style={styles.couponSubtitle}>Available Now</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.couponScroll}>
-                  {affordableCoupons.map((coupon) => (
-                    <Pressable key={coupon.id} style={styles.couponCard}>
-                      <Image source={{ uri: coupon.imageUrl }} style={styles.couponImage} />
-                      <View style={styles.couponInfo}>
-                        <Text style={styles.couponTitle} numberOfLines={1}>{coupon.title}</Text>
-                        <Text style={styles.couponRestaurant} numberOfLines={1}>{coupon.restaurant.name}</Text>
-                        <View style={styles.couponBottom}>
-                          <View style={styles.couponCost}>
-                            <Ionicons name="flash" size={12} color={Colors.warning} />
-                            <Text style={styles.couponCostText}>{coupon.coinCost}</Text>
-                          </View>
-                          <Text style={styles.couponValue}>{coupon.originalValue}</Text>
-                        </View>
-                      </View>
-                      <View style={styles.couponRedeemBadge}>
-                        <Text style={styles.couponRedeemText}>Redeem</Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </>
-            )}
-            {lockedCoupons.length > 0 && (
-              <>
-                <Text style={[styles.couponSubtitle, { marginTop: Spacing.md }]}>Keep Posting to Unlock</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.couponScroll}>
-                  {lockedCoupons.map((coupon) => (
-                    <View key={coupon.id} style={[styles.couponCard, styles.couponCardLocked]}>
-                      <Image source={{ uri: coupon.imageUrl }} style={[styles.couponImage, styles.couponImageLocked]} />
-                      <View style={styles.couponInfo}>
-                        <Text style={styles.couponTitle} numberOfLines={1}>{coupon.title}</Text>
-                        <Text style={styles.couponRestaurant} numberOfLines={1}>{coupon.restaurant.name}</Text>
-                        <View style={styles.couponBottom}>
-                          <View style={styles.couponCost}>
-                            <Ionicons name="flash" size={12} color={Colors.textMuted} />
-                            <Text style={[styles.couponCostText, { color: Colors.textMuted }]}>{coupon.coinCost}</Text>
-                          </View>
-                          <Text style={styles.couponValue}>{coupon.originalValue}</Text>
-                        </View>
-                      </View>
-                      <View style={styles.couponLockedOverlay}>
-                        <Ionicons name="lock-closed" size={20} color={Colors.textSecondary} />
-                        <Text style={styles.couponLockedText}>{coupon.coinCost - coinBalance} more</Text>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              </>
-            )}
-          </View>
-
-          {/* Personal Stats */}
+          {/* 3. Personal Impact Stats */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Impact</Text>
             <View style={styles.statsGrid}>
@@ -287,18 +145,27 @@ export default function ImpactScreen() {
             </View>
           </View>
 
-          {/* Meal Balance */}
-          <View style={styles.section}>
-            <View style={styles.balanceCard}>
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Available Meals</Text>
-                <Text style={styles.balanceValue}>{personalStats?.mealsBalance || 0}</Text>
+          {/* Achievements */}
+          {achievements.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Trophy Case</Text>
+              <View style={styles.achievementsGrid}>
+                {achievements.map((achievement) => (
+                  <View key={achievement.id} style={styles.achievementCard}>
+                    <Image
+                      source={{ uri: achievement.iconUrl }}
+                      style={styles.achievementIcon}
+                    />
+                    <Text style={styles.achievementName}>{achievement.name}</Text>
+                    <Text style={styles.achievementTier}>{achievement.tier}</Text>
+                  </View>
+                ))}
               </View>
-              <Pressable style={styles.buyButton}>
-                <Text style={styles.buyButtonText}>Buy Meals</Text>
-              </Pressable>
             </View>
-          </View>
+          )}
+
+          {/* 4. Consolidated Rewards / Coupons (coins-driven) */}
+          <RewardsSection limit={6} />
 
           {/* Team */}
           <View style={styles.section}>
@@ -355,25 +222,6 @@ export default function ImpactScreen() {
                     </View>
                     <Text style={styles.leaderboardMeals}>{entry.mealsDonated}</Text>
                   </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Achievements */}
-          {achievements.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Trophy Case</Text>
-              <View style={styles.achievementsGrid}>
-                {achievements.map((achievement) => (
-                  <View key={achievement.id} style={styles.achievementCard}>
-                    <Image
-                      source={{ uri: achievement.iconUrl }}
-                      style={styles.achievementIcon}
-                    />
-                    <Text style={styles.achievementName}>{achievement.name}</Text>
-                    <Text style={styles.achievementTier}>{achievement.tier}</Text>
-                  </View>
                 ))}
               </View>
             </View>
@@ -479,234 +327,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: Spacing.md,
   },
-  // Coin Balance Card
-  coinBalanceCard: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    flexDirection: 'row',
-    gap: Spacing.md,
-    borderWidth: 1,
-    borderColor: 'rgba(234, 179, 8, 0.2)',
-  },
-  coinBalanceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  coinIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(234, 179, 8, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  coinBalanceLabel: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-  },
-  coinBalanceValue: {
-    color: Colors.warning,
-    fontSize: FontSizes.xxxl,
-    fontWeight: 'bold',
-  },
-  coinBalanceRight: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  coinEarnText: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-  },
-  coinProgressContainer: {
-    marginTop: Spacing.xs,
-    gap: 4,
-  },
-  coinProgressBar: {
-    height: 6,
-    backgroundColor: Colors.surface,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  coinProgressFill: {
-    height: '100%',
-    backgroundColor: Colors.warning,
-    borderRadius: 3,
-  },
-  coinNextText: {
-    color: Colors.textMuted,
-    fontSize: FontSizes.xs,
-  },
-  // Flash Sponsorship Card
-  flashCard: {
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    height: 180,
-  },
-  flashImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  flashOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-  },
-  flashContent: {
-    flex: 1,
-    padding: Spacing.md,
-    justifyContent: 'space-between',
-  },
-  flashLiveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.success,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    alignSelf: 'flex-start',
-  },
-  flashLiveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.text,
-  },
-  flashLiveText: {
-    color: Colors.text,
-    fontSize: FontSizes.xs,
-    fontWeight: 'bold',
-  },
-  flashTitle: {
-    color: Colors.text,
-    fontSize: FontSizes.lg,
-    fontWeight: 'bold',
-    marginTop: Spacing.xs,
-  },
-  flashDesc: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-  },
-  flashProgressRow: {
-    gap: Spacing.xs,
-  },
-  flashProgressBar: {
-    height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  flashProgressFill: {
-    height: '100%',
-    backgroundColor: Colors.accent,
-    borderRadius: 3,
-  },
-  flashStatsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  flashStatLabel: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.xs,
-  },
-  flashStatValue: {
-    color: Colors.accent,
-    fontWeight: 'bold',
-  },
-  // Coupon Marketplace
-  couponSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    marginBottom: Spacing.sm,
-  },
-  couponScroll: {
-    marginHorizontal: -Spacing.md,
-    paddingHorizontal: Spacing.md,
-  },
-  couponCard: {
-    width: 180,
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    marginRight: Spacing.md,
-  },
-  couponCardLocked: {
-    opacity: 0.7,
-  },
-  couponImage: {
-    width: '100%',
-    height: 100,
-    backgroundColor: Colors.surface,
-  },
-  couponImageLocked: {
-    opacity: 0.5,
-  },
-  couponInfo: {
-    padding: Spacing.sm,
-  },
-  couponTitle: {
-    color: Colors.text,
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-  },
-  couponRestaurant: {
-    color: Colors.accent,
-    fontSize: FontSizes.xs,
-    marginTop: 2,
-  },
-  couponBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: Spacing.xs,
-  },
-  couponCost: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  couponCostText: {
-    color: Colors.warning,
-    fontSize: FontSizes.sm,
-    fontWeight: 'bold',
-  },
-  couponValue: {
-    color: Colors.textMuted,
-    fontSize: FontSizes.xs,
-    textDecorationLine: 'line-through',
-  },
-  couponRedeemBadge: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-    backgroundColor: Colors.accent,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-  },
-  couponRedeemText: {
-    color: Colors.background,
-    fontSize: FontSizes.xs,
-    fontWeight: 'bold',
-  },
-  couponLockedOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  couponLockedText: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.xs,
-    marginTop: 2,
-  },
   // Stats
   statsGrid: {
     flexDirection: 'row',
@@ -730,35 +350,6 @@ const styles = StyleSheet.create({
   statLabel: {
     color: Colors.textSecondary,
     fontSize: FontSizes.sm,
-  },
-  balanceCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  balanceInfo: {},
-  balanceLabel: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-  },
-  balanceValue: {
-    color: Colors.text,
-    fontSize: FontSizes.xxxl,
-    fontWeight: 'bold',
-  },
-  buyButton: {
-    backgroundColor: Colors.accent,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-  },
-  buyButtonText: {
-    color: Colors.background,
-    fontSize: FontSizes.md,
-    fontWeight: '600',
   },
   teamCard: {
     flexDirection: 'row',

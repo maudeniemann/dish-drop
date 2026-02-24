@@ -698,7 +698,12 @@ class ApiClient {
       await new Promise(resolve => setTimeout(resolve, 200));
       const restaurant = mockRestaurants.find(r => r.id === restaurantId);
       if (!restaurant) throw new Error('Restaurant not found');
-      return { restaurant };
+      // Populate website URL from slug for demo mode
+      const withWebsite = {
+        ...restaurant,
+        website: restaurant.website || `https://${restaurant.slug}.example.com`,
+      };
+      return { restaurant: withWebsite };
     }
     return this.request(`/restaurants/${restaurantId}`);
   }
@@ -1041,6 +1046,43 @@ class ApiClient {
 
   // Flash Sponsorship endpoints
   async getSponsorships(): Promise<{ sponsorships: FlashSponsorship[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const now = Date.now();
+      return {
+        sponsorships: [
+          {
+            ...mockFlashSponsorship,
+            progress: (mockFlashSponsorship.currentDrops / mockFlashSponsorship.targetDrops) * 100,
+            timeRemaining: new Date(mockFlashSponsorship.endsAt).getTime() - now,
+          },
+          {
+            id: 'sponsor-2',
+            restaurantId: mockRestaurants[2]?.id || 'r3',
+            restaurant: { id: mockRestaurants[2]?.id || 'r3', name: mockRestaurants[2]?.name || 'Sushi Spot', coverImage: mockRestaurants[2]?.coverImage },
+            title: 'Spring Clean Plate Challenge',
+            description: 'Post a clean plate and we donate 2 meals per drop!',
+            bannerUrl: mockRestaurants[2]?.coverImage,
+            targetDrops: 150,
+            currentDrops: 42,
+            mealsToDonatePer: 2,
+            bonusMeals: 100,
+            totalMealsPledged: 400,
+            totalMealsDonated: 84,
+            dropsRequired: 150,
+            totalMealsGoal: 400,
+            currentMeals: 84,
+            startsAt: '2026-02-15T00:00:00Z',
+            endsAt: '2026-03-15T00:00:00Z',
+            isActive: true,
+            isCompleted: false,
+            charityName: 'Greater Boston Food Bank',
+            progress: (42 / 150) * 100,
+            timeRemaining: new Date('2026-03-15T00:00:00Z').getTime() - now,
+          },
+        ],
+      };
+    }
     return this.request('/sponsorships');
   }
 
