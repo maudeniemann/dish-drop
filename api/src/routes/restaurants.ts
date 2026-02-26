@@ -173,6 +173,32 @@ router.get('/:restaurantId', optionalAuth, async (req: Request, res: Response): 
   }
 });
 
+// GET /restaurants/:restaurantId/menu - Get restaurant menu data
+router.get('/:restaurantId/menu', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId } = req.params;
+
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { menu: true },
+    });
+
+    if (!restaurant) {
+      res.status(404).json({ error: 'Restaurant not found' });
+      return;
+    }
+
+    const menu = restaurant.menu as {
+      categories: Array<{ name: string; items: Array<{ name: string; description?: string; price?: string }> }>;
+    } | null;
+
+    res.json({ menu: menu || { categories: [] } });
+  } catch (error) {
+    console.error('Get restaurant menu error:', error);
+    res.status(500).json({ error: 'Failed to get menu' });
+  }
+});
+
 // GET /restaurants/:restaurantId/posts - Get restaurant's posts
 router.get('/:restaurantId/posts', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {

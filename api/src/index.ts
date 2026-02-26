@@ -49,8 +49,11 @@ app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Dish Drop API running on http://localhost:${PORT}`);
-});
+// Only start listening when not in Vercel serverless
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Dish Drop API running on http://localhost:${PORT}`);
+  });
+}
 
 export default app;

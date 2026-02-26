@@ -9,15 +9,18 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { Colors, Spacing, FontSizes, BorderRadius, DIETARY_TAGS, CUISINE_TYPES } from '../../lib/constants';
+import { Colors, Spacing, FontSizes, BorderRadius, DIETARY_TAGS, CUISINE_TYPES, getRatingColor } from '../../lib/constants';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
-import type { Restaurant } from '../../types';
+import type { Restaurant, MenuItem, MenuCategory } from '../../types';
 
 type Step = 'photo' | 'restaurant' | 'details' | 'tags';
 
@@ -38,6 +41,12 @@ export default function CreateScreen() {
   const [cuisineType, setCuisineType] = useState('');
   const [donateMeals, setDonateMeals] = useState(0);
   const [isPrivate, setIsPrivate] = useState(false);
+
+  // Menu autocomplete
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [filteredMenuItems, setFilteredMenuItems] = useState<MenuItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingMenu, setIsLoadingMenu] = useState(false);
 
   // Restaurant search
   const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
@@ -64,6 +73,56 @@ export default function CreateScreen() {
       console.error('Error loading restaurants:', error);
     } finally {
       setIsLoadingRestaurants(false);
+    }
+  };
+
+  // Fetch menu when restaurant is selected
+  useEffect(() => {
+    if (selectedRestaurant) {
+      loadMenu();
+    }
+  }, [selectedRestaurant]);
+
+  const loadMenu = async () => {
+    if (!selectedRestaurant) return;
+    setIsLoadingMenu(true);
+    try {
+      const { menu } = await api.getRestaurantMenu(selectedRestaurant.id);
+      const allItems: MenuItem[] = menu.categories.flatMap(
+        (cat: MenuCategory) => cat.items
+      );
+      setMenuItems(allItems);
+    } catch (error) {
+      console.error('Error loading menu:', error);
+      setMenuItems([]);
+    } finally {
+      setIsLoadingMenu(false);
+    }
+  };
+
+  const handleDishNameChange = (text: string) => {
+    setDishName(text);
+    if (text.trim().length === 0) {
+      setFilteredMenuItems([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const query = text.toLowerCase().trim();
+    const filtered = menuItems.filter((item) =>
+      item.name.toLowerCase().includes(query)
+    );
+    setFilteredMenuItems(filtered.slice(0, 8));
+    setShowSuggestions(filtered.length > 0);
+  };
+
+  const selectMenuItem = (item: MenuItem) => {
+    setDishName(item.name);
+    setShowSuggestions(false);
+    if (item.price) {
+      const numericPrice = item.price.replace(/[^0-9.]/g, '');
+      if (numericPrice && !price) {
+        setPrice(numericPrice);
+      }
     }
   };
 
@@ -239,82 +298,130 @@ export default function CreateScreen() {
   // Step 3: Dish details
   if (currentStep === 'details') {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.stepHeader}>
-          <Pressable onPress={() => setCurrentStep('restaurant')}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
-          <Text style={styles.stepTitle}>Dish Details</Text>
-          <Pressable onPress={() => setCurrentStep('tags')}>
-            <Text style={styles.nextButton}>Next</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.detailsContent}>
-          <Image source={{ uri: imageUri! }} style={styles.thumbnailPreview} />
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Dish Name *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="What did you order?"
-              placeholderTextColor={Colors.textMuted}
-              value={dishName}
-              onChangeText={setDishName}
-            />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.stepHeader}>
+            <Pressable onPress={() => setCurrentStep('restaurant')}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.stepTitle}>Dish Details</Text>
+            <Pressable onPress={() => setCurrentStep('tags')}>
+              <Text style={styles.nextButton}>Next</Text>
+            </Pressable>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Rating: {rating}/10</Text>
-            <View style={styles.ratingContainer}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-                <Pressable
-                  key={value}
-                  style={[
-                    styles.ratingButton,
-                    rating === value && styles.ratingButtonActive,
-                  ]}
-                  onPress={() => setRating(value)}
-                >
-                  <Text
-                    style={[
-                      styles.ratingButtonText,
-                      rating === value && styles.ratingButtonTextActive,
-                    ]}
-                  >
-                    {value}
-                  </Text>
-                </Pressable>
-              ))}
+          <View style={styles.detailsContent}>
+            <Image source={{ uri: imageUri! }} style={styles.thumbnailPreview} />
+
+            {/* Dish Name with Autocomplete */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Dish Name *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={
+                  menuItems.length > 0
+                    ? 'Search the menu or type a dish...'
+                    : 'What did you order?'
+                }
+                placeholderTextColor={Colors.textMuted}
+                value={dishName}
+                onChangeText={handleDishNameChange}
+                onFocus={() => {
+                  if (dishName.trim().length > 0 && filteredMenuItems.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowSuggestions(false), 200);
+                }}
+              />
+              {isLoadingMenu && (
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.accent}
+                  style={{ position: 'absolute', right: Spacing.md, top: 40 }}
+                />
+              )}
+              {showSuggestions && filteredMenuItems.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  {filteredMenuItems.map((item, index) => (
+                    <Pressable
+                      key={`${item.name}-${index}`}
+                      style={styles.suggestionItem}
+                      onPress={() => selectMenuItem(item)}
+                    >
+                      <View style={styles.suggestionContent}>
+                        <Text style={styles.suggestionName}>{item.name}</Text>
+                        {item.price && (
+                          <Text style={styles.suggestionPrice}>{item.price}</Text>
+                        )}
+                      </View>
+                      {item.description && (
+                        <Text style={styles.suggestionDescription} numberOfLines={1}>
+                          {item.description}
+                        </Text>
+                      )}
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* Rating Slider */}
+            <View style={styles.inputGroup}>
+              <View style={styles.sliderLabelRow}>
+                <Text style={styles.label}>Rating</Text>
+                <View style={[styles.ratingValueBadge, { backgroundColor: getRatingColor(rating) }]}>
+                  <Text style={styles.ratingValueText}>{rating}/10</Text>
+                </View>
+              </View>
+              <View style={styles.sliderContainer}>
+                <Text style={styles.sliderEndLabel}>1</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={1}
+                  maximumValue={10}
+                  step={1}
+                  value={rating}
+                  onValueChange={(value: number) => setRating(value)}
+                  minimumTrackTintColor={getRatingColor(rating)}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={getRatingColor(rating)}
+                />
+                <Text style={styles.sliderEndLabel}>10</Text>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Caption (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Tell us about this dish..."
+                placeholderTextColor={Colors.textMuted}
+                value={caption}
+                onChangeText={setCaption}
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Price (optional)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="$0.00"
+                placeholderTextColor={Colors.textMuted}
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="decimal-pad"
+              />
             </View>
           </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Caption (optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Tell us about this dish..."
-              placeholderTextColor={Colors.textMuted}
-              value={caption}
-              onChangeText={setCaption}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Price (optional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="$0.00"
-              placeholderTextColor={Colors.textMuted}
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="decimal-pad"
-            />
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -368,25 +475,28 @@ export default function CreateScreen() {
 
         {user && user.mealsBalance > 0 && (
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Donate Meals ({user.mealsBalance} available)</Text>
-            <View style={styles.donateRow}>
-              {[0, 1, 2, 3, 5].map((count) => (
-                <Pressable
-                  key={count}
-                  style={[styles.donateButton, donateMeals === count && styles.donateButtonActive]}
-                  onPress={() => setDonateMeals(count)}
-                  disabled={count > user.mealsBalance}
-                >
-                  <Text
-                    style={[
-                      styles.donateButtonText,
-                      donateMeals === count && styles.donateButtonTextActive,
-                    ]}
-                  >
-                    {count}
-                  </Text>
-                </Pressable>
-              ))}
+            <View style={styles.sliderLabelRow}>
+              <Text style={styles.label}>Donate Meals</Text>
+              <Text style={styles.donateValueText}>
+                {donateMeals} of {user.mealsBalance}
+              </Text>
+            </View>
+            <View style={styles.sliderContainer}>
+              <Text style={styles.sliderEndLabel}>0</Text>
+              <Slider
+                style={styles.slider}
+                minimumValue={0}
+                maximumValue={Math.min(user.mealsBalance, 5)}
+                step={1}
+                value={donateMeals}
+                onValueChange={(value: number) => setDonateMeals(value)}
+                minimumTrackTintColor={Colors.error}
+                maximumTrackTintColor={Colors.border}
+                thumbTintColor={Colors.error}
+              />
+              <Text style={styles.sliderEndLabel}>
+                {Math.min(user.mealsBalance, 5)}
+              </Text>
             </View>
           </View>
         )}
@@ -553,32 +663,78 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  ratingButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  suggestionsContainer: {
     backgroundColor: Colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    marginTop: Spacing.xs,
+    maxHeight: 280,
+    overflow: 'hidden',
   },
-  ratingButtonActive: {
-    backgroundColor: Colors.accent,
-    borderColor: Colors.accent,
+  suggestionItem: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.border,
   },
-  ratingButtonText: {
+  suggestionContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  suggestionName: {
     color: Colors.text,
+    fontSize: FontSizes.md,
+    fontWeight: '500',
+    flex: 1,
+  },
+  suggestionPrice: {
+    color: Colors.accent,
     fontSize: FontSizes.sm,
     fontWeight: '600',
+    marginLeft: Spacing.sm,
   },
-  ratingButtonTextActive: {
+  suggestionDescription: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+    marginTop: 2,
+  },
+  sliderLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+  },
+  sliderEndLabel: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+    fontWeight: '500',
+    width: 20,
+    textAlign: 'center',
+  },
+  ratingValueBadge: {
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+  },
+  ratingValueText: {
     color: Colors.background,
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+  },
+  donateValueText: {
+    color: Colors.error,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
   },
   tagsRow: {
     flexDirection: 'row',
@@ -607,32 +763,6 @@ const styles = StyleSheet.create({
   },
   tagTextSelected: {
     color: Colors.background,
-  },
-  donateRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  donateButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  donateButtonActive: {
-    backgroundColor: Colors.error,
-    borderColor: Colors.error,
-  },
-  donateButtonText: {
-    color: Colors.text,
-    fontSize: FontSizes.md,
-    fontWeight: '600',
-  },
-  donateButtonTextActive: {
-    color: Colors.text,
   },
   toggleRow: {
     flexDirection: 'row',
