@@ -492,7 +492,7 @@ export default function ListsScreen() {
     <View style={styles.section}>
       <View style={styles.sectionHeaderRow}>
         <View>
-          <Text style={styles.sectionTitle}>Featured Playlists</Text>
+          <Text style={styles.sectionTitle}>Featured Collections</Text>
           <Text style={styles.sectionSubtitle}>Curated by the community</Text>
         </View>
         <Pressable style={styles.seeAllButton}>
@@ -527,7 +527,7 @@ export default function ListsScreen() {
               <View style={styles.featuredTop}>
                 <View style={styles.featuredPlaylistBadge}>
                   <Ionicons name="musical-notes" size={10} color={Colors.accent} />
-                  <Text style={styles.featuredPlaylistBadgeText}>PLAYLIST</Text>
+                  <Text style={styles.featuredPlaylistBadgeText}>COLLECTION</Text>
                 </View>
               </View>
               <View style={styles.featuredBottom}>

@@ -19,8 +19,8 @@ import type { User, Post, Collection } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = Spacing.xs;
-const NUM_COLUMNS = 3;
-const POST_SIZE = Math.floor((SCREEN_WIDTH - Spacing.md * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS);
+const NUM_COLUMNS = 2;
+const POST_SIZE = Math.floor((SCREEN_WIDTH - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS);
 
 type Tab = 'posts' | 'likes' | 'collections';
 
@@ -511,8 +511,6 @@ const styles = StyleSheet.create({
   postsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     gap: GRID_GAP,
   },
@@ -543,8 +541,6 @@ const styles = StyleSheet.create({
   collectionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     gap: GRID_GAP,
   },

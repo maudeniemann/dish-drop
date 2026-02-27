@@ -145,6 +145,84 @@ export default function ImpactScreen() {
             </View>
           </View>
 
+          {/* Challenges - Earn More Meals */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Challenges</Text>
+            <View style={styles.challengesCard}>
+              {/* Streak Challenge */}
+              <View style={styles.challengeItem}>
+                <View style={styles.challengeHeader}>
+                  <View style={styles.challengeIconWrap}>
+                    <Ionicons name="flame" size={18} color={Colors.warning} />
+                  </View>
+                  <View style={styles.challengeInfo}>
+                    <Text style={styles.challengeTitle}>7-Day Streak</Text>
+                    <Text style={styles.challengeSubtitle}>
+                      {Math.min(personalStats?.mealStreak || 0, 7)}/7 days
+                    </Text>
+                  </View>
+                  <Text style={styles.challengeReward}>+5 meals</Text>
+                </View>
+                <View style={styles.challengeProgressBar}>
+                  <View
+                    style={[
+                      styles.challengeProgressFill,
+                      { width: `${Math.min(((personalStats?.mealStreak || 0) / 7) * 100, 100)}%` },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              {/* Post Dishes Challenge */}
+              <View style={styles.challengeItem}>
+                <View style={styles.challengeHeader}>
+                  <View style={styles.challengeIconWrap}>
+                    <Ionicons name="camera" size={18} color={Colors.accent} />
+                  </View>
+                  <View style={styles.challengeInfo}>
+                    <Text style={styles.challengeTitle}>Share 10 Dishes</Text>
+                    <Text style={styles.challengeSubtitle}>
+                      {Math.min(personalStats?.postCount || 0, 10)}/10 posts
+                    </Text>
+                  </View>
+                  <Text style={styles.challengeReward}>+10 meals</Text>
+                </View>
+                <View style={styles.challengeProgressBar}>
+                  <View
+                    style={[
+                      styles.challengeProgressFill,
+                      { width: `${Math.min(((personalStats?.postCount || 0) / 10) * 100, 100)}%` },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              {/* Save Dishes Challenge */}
+              <View style={styles.challengeItem}>
+                <View style={styles.challengeHeader}>
+                  <View style={styles.challengeIconWrap}>
+                    <Ionicons name="bookmark" size={18} color={Colors.info} />
+                  </View>
+                  <View style={styles.challengeInfo}>
+                    <Text style={styles.challengeTitle}>Save 20 Dishes</Text>
+                    <Text style={styles.challengeSubtitle}>
+                      {Math.min(personalStats?.dishesSaved || 0, 20)}/20 saved
+                    </Text>
+                  </View>
+                  <Text style={styles.challengeReward}>+3 meals</Text>
+                </View>
+                <View style={styles.challengeProgressBar}>
+                  <View
+                    style={[
+                      styles.challengeProgressFill,
+                      { width: `${Math.min(((personalStats?.dishesSaved || 0) / 20) * 100, 100)}%` },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+
           {/* Achievements */}
           {achievements.length > 0 && (
             <View style={styles.section}>
@@ -444,6 +522,57 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontSize: FontSizes.lg,
     fontWeight: 'bold',
+  },
+  // Challenges
+  challengesCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  challengeItem: {
+    gap: Spacing.sm,
+  },
+  challengeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  challengeIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  challengeInfo: {
+    flex: 1,
+  },
+  challengeTitle: {
+    color: Colors.text,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+  challengeSubtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+  },
+  challengeReward: {
+    color: Colors.accent,
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  challengeProgressBar: {
+    height: 6,
+    backgroundColor: Colors.surface,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  challengeProgressFill: {
+    height: '100%',
+    backgroundColor: Colors.accent,
+    borderRadius: 3,
   },
   achievementsGrid: {
     flexDirection: 'row',

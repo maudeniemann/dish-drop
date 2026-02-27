@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Share,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +20,9 @@ import { Colors, Spacing, FontSizes, BorderRadius, getRatingColor } from '../../
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Post, Comment } from '../../types';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
+import { Paths, File as ExpoFile } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 export default function PostScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -116,6 +120,42 @@ export default function PostScreen() {
     }
   };
 
+  const handleShare = async () => {
+    if (!post) return;
+    try {
+      const message = `Check out this ${post.dishName} from ${post.restaurant.name} on DishDrop! Rated ${post.rating}/10`;
+
+      if (post.imageUrl && await Sharing.isAvailableAsync()) {
+        try {
+          const file = new ExpoFile(Paths.cache, `dishdrop-share-${post.id}.jpg`);
+          const response = await fetch(post.imageUrl);
+          const blob = await response.blob();
+          const reader = new FileReader();
+          const base64 = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+            reader.readAsDataURL(blob);
+          });
+          await file.write(base64, { encoding: 'base64' });
+          await Sharing.shareAsync(file.uri, {
+            mimeType: 'image/jpeg',
+            dialogTitle: message,
+            UTI: 'public.jpeg',
+          });
+          return;
+        } catch {
+          // Fall through to text-only share
+        }
+      }
+
+      await Share.share({
+        message,
+        title: `${post.dishName} - DishDrop`,
+      });
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to share post');
+    }
+  };
+
   const renderComment = ({ item: comment }: { item: Comment }) => (
     <View style={styles.commentItem}>
       <Pressable onPress={() => router.push(`/profile/${comment.user.id}`)}>
@@ -172,25 +212,36 @@ export default function PostScreen() {
           {/* Post Info */}
           <View style={styles.postInfo}>
             {/* User Info */}
-            <Pressable
-              style={styles.userRow}
-              onPress={() => router.push(`/profile/${post.user.id}`)}
-            >
-              <Image
-                source={{ uri: post.user.profileImage || 'https://via.placeholder.com/40' }}
-                style={styles.userAvatar}
-              />
-              <View>
-                <Text style={styles.userName}>{post.user.name}</Text>
-                <Text style={styles.userUsername}>@{post.user.username}</Text>
-              </View>
-              {post.user.mealStreak && post.user.mealStreak > 0 && (
-                <View style={styles.streakBadge}>
-                  <Ionicons name="flame" size={14} color={Colors.warning} />
-                  <Text style={styles.streakText}>{post.user.mealStreak}</Text>
+            <View style={styles.userSection}>
+              <Pressable
+                style={styles.userRow}
+                onPress={() => router.push(`/profile/${post.user.id}`)}
+              >
+                <Image
+                  source={{ uri: post.user.profileImage || 'https://via.placeholder.com/40' }}
+                  style={styles.userAvatar}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.userName}>{post.user.name}</Text>
+                  <Text style={styles.userUsername}>@{post.user.username}</Text>
+                </View>
+                {post.user.mealStreak && post.user.mealStreak > 0 && (
+                  <View style={styles.streakBadge}>
+                    <Ionicons name="flame" size={14} color={Colors.warning} />
+                    <Text style={styles.streakText}>{post.user.mealStreak}</Text>
+                  </View>
+                )}
+              </Pressable>
+
+              {post.donationMade && (
+                <View style={styles.donationBadgeTop}>
+                  <Ionicons name="heart" size={14} color={Colors.error} />
+                  <Text style={styles.donationTextTop}>
+                    {post.mealsDonated} meal{post.mealsDonated !== 1 ? 's' : ''} donated with this post
+                  </Text>
                 </View>
               )}
-            </Pressable>
+            </View>
 
             {/* Dish Info */}
             <View style={styles.dishInfo}>
@@ -223,14 +274,6 @@ export default function PostScreen() {
                 </View>
               )}
 
-              {post.donationMade && (
-                <View style={styles.donationBadge}>
-                  <Ionicons name="heart" size={14} color={Colors.error} />
-                  <Text style={styles.donationText}>
-                    {post.mealsDonated} meal{post.mealsDonated !== 1 ? 's' : ''} donated with this post
-                  </Text>
-                </View>
-              )}
             </View>
 
             {/* Action Buttons */}
@@ -258,14 +301,14 @@ export default function PostScreen() {
                 <Text style={styles.actionCount}>{post.saveCount}</Text>
               </Pressable>
 
-              <Pressable style={styles.actionButton}>
+              <Pressable style={styles.actionButton} onPress={handleShare}>
                 <Ionicons name="share-outline" size={22} color={Colors.text} />
               </Pressable>
             </View>
 
             {/* Time */}
             <Text style={styles.timestamp}>
-              {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+              {format(new Date(post.createdAt), 'MMM d, yyyy \u2022 h:mm a')}
             </Text>
           </View>
 
@@ -357,11 +400,27 @@ const styles = StyleSheet.create({
   postInfo: {
     padding: Spacing.md,
   },
+  userSection: {
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    marginBottom: Spacing.md,
+  },
+  donationBadgeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  donationTextTop: {
+    color: Colors.error,
+    fontSize: FontSizes.sm,
   },
   userAvatar: {
     width: 44,

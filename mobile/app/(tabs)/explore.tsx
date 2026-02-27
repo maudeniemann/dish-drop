@@ -10,6 +10,7 @@ import {
   Dimensions,
   ScrollView,
   Animated,
+  PanResponder,
   Platform,
   Linking,
 } from 'react-native';
@@ -148,12 +149,54 @@ export default function ExploreScreen() {
 
   const collapseBottomSheet = () => {
     setIsBottomSheetExpanded(false);
+    setSelectedRestaurant(null);
+    setRestaurantPosts([]);
     Animated.spring(bottomSheetAnim, {
       toValue: BOTTOM_SHEET_MIN_HEIGHT,
       useNativeDriver: false,
       friction: 8,
     }).start();
   };
+
+  const bottomSheetPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 5;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0 && isBottomSheetExpanded) {
+          const newHeight = BOTTOM_SHEET_MAX_HEIGHT - gestureState.dy;
+          if (newHeight >= BOTTOM_SHEET_MIN_HEIGHT) {
+            bottomSheetAnim.setValue(newHeight);
+          }
+        } else if (gestureState.dy < 0 && !isBottomSheetExpanded) {
+          const newHeight = BOTTOM_SHEET_MIN_HEIGHT - gestureState.dy;
+          if (newHeight <= BOTTOM_SHEET_MAX_HEIGHT) {
+            bottomSheetAnim.setValue(newHeight);
+          }
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 50) {
+          collapseBottomSheet();
+        } else if (gestureState.dy < -50) {
+          expandBottomSheet();
+        } else {
+          // Snap back to current state
+          if (isBottomSheetExpanded) {
+            expandBottomSheet();
+          } else {
+            Animated.spring(bottomSheetAnim, {
+              toValue: BOTTOM_SHEET_MIN_HEIGHT,
+              useNativeDriver: false,
+              friction: 8,
+            }).start();
+          }
+        }
+      },
+    })
+  ).current;
 
   const handleMapPress = () => {
     if (isBottomSheetExpanded) {
@@ -595,12 +638,12 @@ export default function ExploreScreen() {
 
           {/* Bottom Sheet */}
           <Animated.View style={[styles.bottomSheet, { height: bottomSheetAnim }]}>
-            <Pressable
+            <View
               style={styles.bottomSheetHandle}
-              onPress={() => isBottomSheetExpanded ? collapseBottomSheet() : expandBottomSheet()}
+              {...bottomSheetPanResponder.panHandlers}
             >
               <View style={styles.handleBar} />
-            </Pressable>
+            </View>
 
             {selectedRestaurant ? (
               <ScrollView

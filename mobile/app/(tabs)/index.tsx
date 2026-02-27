@@ -22,6 +22,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
 import FilterModal, { countFeedFilters } from '../../components/FilterModal';
 import type { Post, FlashSponsorship, MysteryBox, FeedFilterState } from '../../types';
+import { format } from 'date-fns';
+import { Paths, File as ExpoFile } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const POST_HEIGHT = SCREEN_HEIGHT - 180;
@@ -80,24 +83,35 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
           <View style={styles.overlay} />
 
           {/* User info (top left) */}
-          <Pressable
-            style={styles.userInfo}
-            onPress={() => router.push(`/profile/${post.user.id}`)}
-          >
-            <Image
-              source={{ uri: post.user.profileImage || 'https://via.placeholder.com/40' }}
-              style={styles.avatar}
-            />
-            <View>
-              <Text style={styles.username}>@{post.user.username}</Text>
-              {post.user.mealStreak && post.user.mealStreak > 0 && (
-                <View style={styles.streakBadge}>
-                  <Ionicons name="flame" size={12} color={Colors.warning} />
-                  <Text style={styles.streakText}>{post.user.mealStreak} day streak</Text>
-                </View>
-              )}
-            </View>
-          </Pressable>
+          <View style={styles.topBar}>
+            <Pressable
+              style={styles.userInfo}
+              onPress={() => router.push(`/profile/${post.user.id}`)}
+            >
+              <Image
+                source={{ uri: post.user.profileImage || 'https://via.placeholder.com/40' }}
+                style={styles.avatar}
+              />
+              <View>
+                <Text style={styles.username}>@{post.user.username}</Text>
+                {post.user.mealStreak && post.user.mealStreak > 0 && (
+                  <View style={styles.streakBadge}>
+                    <Ionicons name="flame" size={12} color={Colors.warning} />
+                    <Text style={styles.streakText}>{post.user.mealStreak} day streak</Text>
+                  </View>
+                )}
+              </View>
+            </Pressable>
+
+            {post.donationMade && (
+              <View style={styles.donationBadgeTop}>
+                <Ionicons name="heart" size={12} color={Colors.error} />
+                <Text style={styles.donationTextTop}>
+                  {post.mealsDonated} meal{post.mealsDonated !== 1 ? 's' : ''} donated
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Action buttons (right side) */}
           <View style={styles.actionButtons}>
@@ -171,14 +185,9 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
               </Text>
             )}
 
-            {post.donationMade && (
-              <View style={styles.donationBadge}>
-                <Ionicons name="heart" size={12} color={Colors.error} />
-                <Text style={styles.donationText}>
-                  {post.mealsDonated} meal{post.mealsDonated !== 1 ? 's' : ''} donated
-                </Text>
-              </View>
-            )}
+            <Text style={styles.postTimestamp}>
+              {format(new Date(post.createdAt), 'MMM d, yyyy \u2022 h:mm a')}
+            </Text>
           </View>
         </Animated.View>
       </GestureDetector>
@@ -335,7 +344,32 @@ export default function HomeScreen() {
 
   const handleShare = async (post: Post) => {
     try {
-      const message = `Check out this ${post.dishName} from ${post.restaurant.name} on DishDrop! Rated ${post.rating}/10 🍽️`;
+      const message = `Check out this ${post.dishName} from ${post.restaurant.name} on DishDrop! Rated ${post.rating}/10`;
+
+      // Try to share with image
+      if (post.imageUrl && await Sharing.isAvailableAsync()) {
+        try {
+          const file = new ExpoFile(Paths.cache, `dishdrop-share-${post.id}.jpg`);
+          const response = await fetch(post.imageUrl);
+          const blob = await response.blob();
+          const reader = new FileReader();
+          const base64 = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+            reader.readAsDataURL(blob);
+          });
+          await file.write(base64, { encoding: 'base64' });
+          await Sharing.shareAsync(file.uri, {
+            mimeType: 'image/jpeg',
+            dialogTitle: message,
+            UTI: 'public.jpeg',
+          });
+          return;
+        } catch {
+          // Fall through to text-only share
+        }
+      }
+
+      // Fallback: text-only share
       const result = await Share.share({
         message,
         title: `${post.dishName} - DishDrop`,
@@ -849,10 +883,16 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
-  userInfo: {
+  topBar: {
     position: 'absolute',
     top: Spacing.md,
     left: Spacing.md,
+    right: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
@@ -959,6 +999,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: FontSizes.sm,
     fontWeight: '600',
+  },
+  donationBadgeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(239, 68, 68, 0.95)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  donationTextTop: {
+    color: '#FFFFFF',
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  postTimestamp: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.xs,
+    marginTop: Spacing.xs,
   },
   emptyContainer: {
     flex: 1,
