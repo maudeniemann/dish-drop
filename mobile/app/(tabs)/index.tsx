@@ -82,7 +82,7 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
           />
           <View style={styles.overlay} />
 
-          {/* User info (top left) */}
+          {/* Header: user info (left) + rating score (right) */}
           <View style={styles.topBar}>
             <Pressable
               style={styles.userInfo}
@@ -93,7 +93,13 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
                 style={styles.avatar}
               />
               <View>
-                <Text style={styles.username}>@{post.user.username}</Text>
+                <View style={styles.usernameRow}>
+                  <Text style={styles.username}>@{post.user.username}</Text>
+                  <View style={styles.mealIndicator}>
+                    <Ionicons name="heart" size={10} color={Colors.error} />
+                    <Text style={styles.mealIndicatorText}>{post.user.mealsDonated || post.mealsDonated || 0}</Text>
+                  </View>
+                </View>
                 {post.user.mealStreak && post.user.mealStreak > 0 && (
                   <View style={styles.streakBadge}>
                     <Ionicons name="flame" size={12} color={Colors.warning} />
@@ -103,14 +109,9 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
               </View>
             </Pressable>
 
-            {post.donationMade && (
-              <View style={styles.donationBadgeTop}>
-                <Ionicons name="heart" size={12} color={Colors.error} />
-                <Text style={styles.donationTextTop}>
-                  {post.mealsDonated} meal{post.mealsDonated !== 1 ? 's' : ''} donated
-                </Text>
-              </View>
-            )}
+            <View style={[styles.ratingScoreBadge, { backgroundColor: getRatingColor(post.rating) }]}>
+              <Text style={styles.ratingScoreText}>{post.rating}</Text>
+            </View>
           </View>
 
           {/* Action buttons (right side) */}
@@ -162,9 +163,6 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
               <View style={styles.restaurantRow}>
                 <Ionicons name="location" size={14} color={Colors.accent} />
                 <Text style={styles.restaurantName}>{post.restaurant.name}</Text>
-                <View style={[styles.ratingBadge, { backgroundColor: getRatingColor(post.rating) }]}>
-                  <Text style={styles.ratingText}>{post.rating}</Text>
-                </View>
               </View>
             </Pressable>
 
@@ -945,15 +943,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: Spacing.xs,
   },
-  ratingBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.md,
-    marginLeft: Spacing.sm,
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  ratingText: {
+  mealIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.full,
+  },
+  mealIndicatorText: {
+    color: Colors.error,
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+  },
+  ratingScoreBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ratingScoreText: {
     color: Colors.background,
-    fontSize: FontSizes.xl,
+    fontSize: FontSizes.lg,
     fontWeight: 'bold',
   },
   restaurantRow: {
@@ -983,36 +1001,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.md,
     marginTop: Spacing.sm,
-  },
-  donationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: Spacing.sm,
-    backgroundColor: 'rgba(239, 68, 68, 0.95)',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    alignSelf: 'flex-start',
-  },
-  donationText: {
-    color: '#FFFFFF',
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-  },
-  donationBadgeTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(239, 68, 68, 0.95)',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  donationTextTop: {
-    color: '#FFFFFF',
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
   },
   postTimestamp: {
     color: Colors.textSecondary,
