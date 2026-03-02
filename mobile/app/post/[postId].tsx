@@ -246,7 +246,7 @@ export default function PostScreen() {
             {/* Dish Info */}
             <View style={styles.dishInfo}>
               <View style={styles.dishHeader}>
-                <Text style={styles.dishName}>{post.dishName}</Text>
+                <Text style={styles.dishName} numberOfLines={2}>{post.dishName}</Text>
                 <View style={[styles.ratingBadge, { backgroundColor: getRatingColor(post.rating) }]}>
                   <Text style={styles.ratingText}>{post.rating}/10</Text>
                 </View>
@@ -257,7 +257,7 @@ export default function PostScreen() {
                 onPress={() => router.push(`/restaurant/${post.restaurant.id}`)}
               >
                 <Ionicons name="location" size={16} color={Colors.accent} />
-                <Text style={styles.restaurantName}>{post.restaurant.name}</Text>
+                <Text style={styles.restaurantName} numberOfLines={1}>{post.restaurant.name}</Text>
               </Pressable>
 
               {post.caption && (
@@ -484,6 +484,7 @@ const styles = StyleSheet.create({
   restaurantName: {
     color: Colors.accent,
     fontSize: FontSizes.md,
+    flex: 1,
   },
   caption: {
     color: Colors.text,

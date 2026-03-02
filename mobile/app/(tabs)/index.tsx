@@ -16,6 +16,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, FontSizes, BorderRadius, getRatingColor, calculateDistance, type FeedType } from '../../lib/constants';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -80,7 +81,14 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
             style={styles.postImage}
             resizeMode="cover"
           />
-          <View style={styles.overlay} />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.6)', 'transparent']}
+            style={styles.overlayGradientTop}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.75)']}
+            style={styles.overlayGradientBottom}
+          />
 
           {/* Header: user info (left) + rating score (right) */}
           <View style={styles.topBar}>
@@ -155,14 +163,14 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
 
           {/* Dish info (bottom) */}
           <View style={styles.dishInfo}>
-            <Text style={styles.dishName}>{post.dishName}</Text>
+            <Text style={styles.dishName} numberOfLines={1}>{post.dishName}</Text>
 
             <Pressable
               onPress={() => router.push(`/restaurant/${post.restaurant.id}`)}
             >
               <View style={styles.restaurantRow}>
                 <Ionicons name="location" size={14} color={Colors.accent} />
-                <Text style={styles.restaurantName}>{post.restaurant.name}</Text>
+                <Text style={styles.restaurantName} numberOfLines={1}>{post.restaurant.name}</Text>
               </View>
             </Pressable>
 
@@ -877,9 +885,19 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.card,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  overlayGradientTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '30%',
+  },
+  overlayGradientBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
   },
   topBar: {
     position: 'absolute',
@@ -906,6 +924,9 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.md,
     fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   streakBadge: {
     flexDirection: 'row',
@@ -915,6 +936,9 @@ const styles = StyleSheet.create({
   streakText: {
     color: Colors.warning,
     fontSize: FontSizes.xs,
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   actionButtons: {
     position: 'absolute',
@@ -930,6 +954,9 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.sm,
     marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   dishInfo: {
     position: 'absolute',
@@ -942,6 +969,9 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xl,
     fontWeight: 'bold',
     marginBottom: Spacing.xs,
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   usernameRow: {
     flexDirection: 'row',
@@ -983,6 +1013,10 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontSize: FontSizes.md,
     fontWeight: '500',
+    flex: 1,
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   locationRow: {
     flexDirection: 'row',
@@ -992,20 +1026,32 @@ const styles = StyleSheet.create({
   restaurantCity: {
     color: Colors.textSecondary,
     fontSize: FontSizes.sm,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   distanceText: {
     color: Colors.textSecondary,
     fontSize: FontSizes.sm,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   caption: {
     color: Colors.text,
     fontSize: FontSizes.md,
     marginTop: Spacing.sm,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   postTimestamp: {
     color: Colors.textSecondary,
     fontSize: FontSizes.xs,
     marginTop: Spacing.xs,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   emptyContainer: {
     flex: 1,

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../lib/constants';
 import { api } from '../lib/api';
 import type { FlashSponsorship } from '../types';
@@ -85,7 +86,10 @@ export default function FlashSponsorships({ limit = 5 }: Props) {
               source={{ uri: sponsorship.bannerUrl || sponsorship.restaurant.coverImage }}
               style={styles.cardImage}
             />
-            <View style={styles.cardOverlay}>
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.7)']}
+              style={styles.cardOverlay}
+            >
               <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
                   <View
@@ -99,7 +103,7 @@ export default function FlashSponsorships({ limit = 5 }: Props) {
                   {sponsorship.currentDrops}/{sponsorship.targetDrops} drops
                 </Text>
               </View>
-            </View>
+            </LinearGradient>
 
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle} numberOfLines={2}>
@@ -198,7 +202,6 @@ const styles = StyleSheet.create({
     height: 120,
     justifyContent: 'flex-end',
     padding: Spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   progressContainer: {
     gap: 4,
@@ -218,6 +221,9 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.xs,
     fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   cardContent: {
     padding: Spacing.md,

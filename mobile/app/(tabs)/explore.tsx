@@ -18,6 +18,7 @@ import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { router } from 'expo-router';
 import { useIsFocused } from '@react-navigation/core';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, FontSizes, BorderRadius, getRatingColor, calculateDistance } from '../../lib/constants';
 import { api } from '../../lib/api';
 import { useLocation } from '../../contexts/LocationContext';
@@ -389,7 +390,10 @@ export default function ExploreScreen() {
               onPress={() => router.push(`/restaurant/${dish.restaurantId}`)}
             >
               <Image source={{ uri: dish.imageUrl }} style={styles.trendingImage} />
-              <View style={styles.trendingOverlay} />
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.8)']}
+                style={styles.trendingOverlay}
+              />
               <View style={styles.trendingInfo}>
                 <Text style={styles.trendingDishName} numberOfLines={1}>{dish.dishName}</Text>
                 <Text style={styles.trendingRestaurant} numberOfLines={1}>{dish.restaurantName}</Text>
@@ -418,7 +422,10 @@ export default function ExploreScreen() {
         }}
       >
         <Image source={{ uri: sponsoredPost.imageUrl }} style={styles.sponsoredImage} />
-        <View style={styles.sponsoredOverlay} />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.8)']}
+          style={styles.sponsoredOverlay}
+        />
         <View style={styles.sponsoredContent}>
           <View style={styles.sponsoredBadge}>
             <Text style={styles.sponsoredBadgeText}>Sponsored</Text>
@@ -451,7 +458,7 @@ export default function ExploreScreen() {
         </View>
       </View>
       <View style={styles.listItemContent}>
-        <Text style={styles.listItemName}>{restaurant.name}</Text>
+        <Text style={styles.listItemName} numberOfLines={1}>{restaurant.name}</Text>
         <Text style={styles.listItemDetails}>
           {restaurant.cuisineTypes?.slice(0, 2).join(' • ')} • {getPriceLevel(restaurant.priceLevel)}
         </Text>
@@ -653,7 +660,7 @@ export default function ExploreScreen() {
                 {/* Restaurant Header */}
                 <View style={styles.restaurantHeader}>
                   <View style={styles.restaurantInfo}>
-                    <Text style={styles.restaurantName}>{selectedRestaurant.name}</Text>
+                    <Text style={styles.restaurantName} numberOfLines={1}>{selectedRestaurant.name}</Text>
                     <View style={styles.restaurantMeta}>
                       <View style={[styles.ratingBadge, { backgroundColor: getRatingColor(selectedRestaurant.averageRating || 0) }]}>
                         <Text style={styles.ratingText}>{selectedRestaurant.averageRating?.toFixed(1) || 'New'}</Text>
@@ -1276,8 +1283,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   trendingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '70%',
   },
   trendingInfo: {
     position: 'absolute',
@@ -1290,11 +1300,17 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.sm,
     fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   trendingRestaurant: {
     color: Colors.textSecondary,
     fontSize: FontSizes.xs,
     marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   trendingMeta: {
     flexDirection: 'row',
@@ -1331,7 +1347,6 @@ const styles = StyleSheet.create({
   },
   sponsoredOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   sponsoredContent: {
     position: 'absolute',
@@ -1356,11 +1371,17 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.lg,
     fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   sponsoredSubtitle: {
     color: Colors.textSecondary,
     fontSize: FontSizes.sm,
     marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   sponsoredCta: {
     flexDirection: 'row',

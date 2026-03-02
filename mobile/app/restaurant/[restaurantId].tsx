@@ -175,7 +175,7 @@ export default function RestaurantScreen() {
 
         {/* Info */}
         <View style={styles.info}>
-          <Text style={styles.name}>{restaurant.name}</Text>
+          <Text style={styles.name} numberOfLines={2}>{restaurant.name}</Text>
 
           <Pressable style={styles.addressRow} onPress={openMaps}>
             <Ionicons name="location" size={16} color={Colors.accent} />
