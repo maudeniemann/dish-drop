@@ -1026,8 +1026,8 @@ const styles = StyleSheet.create({
   },
   restaurantName: {
     color: Colors.accent,
-    fontSize: FontSizes.md,
-    fontWeight: '500',
+    fontSize: FontSizes.lg,
+    fontWeight: '600',
     flex: 1,
     textShadowColor: 'rgba(0,0,0,0.95)',
     textShadowOffset: { width: 0, height: 1 },
@@ -1040,14 +1040,14 @@ const styles = StyleSheet.create({
   },
   restaurantCity: {
     color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.md,
     textShadowColor: 'rgba(0,0,0,0.95)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 8,
   },
   distanceText: {
     color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.md,
     textShadowColor: 'rgba(0,0,0,0.95)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 8,

@@ -124,6 +124,9 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
                   const isItemExpanded = expandedItems.has(itemKey);
                   const reviews = getMatchingReviews(item.name);
                   const hasReviews = reviews.length > 0;
+                  const avgRating = hasReviews
+                    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+                    : null;
 
                   return (
                     <View key={itemKey}>
@@ -134,6 +137,11 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
                         <View style={styles.menuItemInfo}>
                           <View style={styles.menuItemNameRow}>
                             <Text style={styles.menuItemName}>{item.name}</Text>
+                            {avgRating !== null && (
+                              <View style={[styles.avgRatingBadge, { backgroundColor: getRatingColor(avgRating) }]}>
+                                <Text style={styles.avgRatingText}>{avgRating % 1 === 0 ? avgRating : avgRating.toFixed(1)}</Text>
+                              </View>
+                            )}
                             {hasReviews && (
                               <View style={styles.reviewBadge}>
                                 <Ionicons name="camera" size={10} color={Colors.background} />
@@ -273,6 +281,18 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontSize: FontSizes.md,
     fontWeight: '600',
+  },
+  avgRatingBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  avgRatingText: {
+    color: Colors.background,
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   reviewBadge: {
     flexDirection: 'row',
