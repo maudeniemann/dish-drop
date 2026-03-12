@@ -85,31 +85,29 @@ export default function ImpactScreen() {
         />
       }
     >
-      {/* 1. Community Goal / Global Stats */}
+      {/* 1. Community Impact Section - Redesigned */}
       <View style={styles.globalSection}>
-        <View style={styles.globalCounter}>
-          <Text style={styles.counterLabel}>Meals Donated</Text>
-          <Text style={styles.counterValue}>
+        <View style={styles.communityImpactCard}>
+          <View style={styles.communityImpactHeader}>
+            <Ionicons name="heart" size={16} color={Colors.accent} />
+            <Text style={styles.communityImpactLabel}>COMMUNITY IMPACT</Text>
+          </View>
+          <Text style={styles.communityImpactValue}>
             {(globalStats?.totalMeals || 0).toLocaleString()}
           </Text>
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progress}%` }]} />
-            </View>
-            <Text style={styles.progressText}>
-              Goal: {(globalStats?.currentGoal || 0).toLocaleString()} meals
+          <Text style={styles.communityImpactSubtitle}>meals donated</Text>
+          <View style={styles.communityGoalRow}>
+            <Text style={styles.communityGoalLabel}>Next Goal</Text>
+            <Text style={styles.communityGoalTarget}>
+              {(globalStats?.currentGoal || 0).toLocaleString()} meals
             </Text>
           </View>
-        </View>
-
-        <View style={styles.rewardCard}>
-          <Ionicons name="gift" size={24} color={Colors.accent} />
-          <View style={styles.rewardInfo}>
-            <Text style={styles.rewardTitle}>Community Reward</Text>
-            <Text style={styles.rewardText}>
-              Reach the goal to unlock exclusive badges for everyone!
-            </Text>
+          <View style={styles.communityProgressBar}>
+            <View style={[styles.communityProgressFill, { width: `${progress}%` }]} />
           </View>
+          <Text style={styles.communityProgressText}>
+            {Math.round(progress)}% to unlock community rewards
+          </Text>
         </View>
       </View>
 
@@ -339,62 +337,68 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     gap: Spacing.md,
   },
-  globalCounter: {
+  communityImpactCard: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(26, 202, 231, 0.2)',
   },
-  counterLabel: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.md,
+  communityImpactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
-  counterValue: {
+  communityImpactLabel: {
     color: Colors.accent,
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  communityImpactValue: {
+    color: Colors.text,
     fontSize: 48,
     fontWeight: 'bold',
-    marginVertical: Spacing.sm,
   },
-  progressContainer: {
+  communityImpactSubtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.md,
+    marginBottom: Spacing.md,
+  },
+  communityGoalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     width: '100%',
-    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: Colors.surface,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.accent,
-    borderRadius: 4,
-  },
-  progressText: {
+  communityGoalLabel: {
     color: Colors.textSecondary,
     fontSize: FontSizes.sm,
-    textAlign: 'center',
   },
-  rewardCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    gap: Spacing.md,
-    alignItems: 'center',
-  },
-  rewardInfo: {
-    flex: 1,
-  },
-  rewardTitle: {
+  communityGoalTarget: {
     color: Colors.text,
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontWeight: '600',
   },
-  rewardText: {
+  communityProgressBar: {
+    width: '100%',
+    height: 10,
+    backgroundColor: Colors.surface,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  communityProgressFill: {
+    height: '100%',
+    backgroundColor: Colors.accent,
+    borderRadius: 5,
+  },
+  communityProgressText: {
     color: Colors.textSecondary,
     fontSize: FontSizes.sm,
-    marginTop: 2,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
   },
   section: {
     padding: Spacing.md,

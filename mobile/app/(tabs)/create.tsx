@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
@@ -396,7 +397,12 @@ export default function CreateScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Caption (optional)</Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Caption (optional)</Text>
+                <Pressable style={styles.doneButton} onPress={() => Keyboard.dismiss()}>
+                  <Text style={styles.doneButtonText}>Done</Text>
+                </Pressable>
+              </View>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Tell us about this dish..."
@@ -410,14 +416,31 @@ export default function CreateScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Price (optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="$0.00"
-                placeholderTextColor={Colors.textMuted}
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="decimal-pad"
-              />
+              <View style={styles.priceInputContainer}>
+                <Text style={styles.priceCurrencySymbol}>$</Text>
+                <TextInput
+                  style={[styles.input, styles.priceInput]}
+                  placeholder="0.00"
+                  placeholderTextColor={Colors.textMuted}
+                  value={price}
+                  onChangeText={(text) => {
+                    // Strip all non-digit characters
+                    const digits = text.replace(/[^0-9]/g, '');
+                    if (digits === '' || digits === '0' || digits === '00' || digits === '000') {
+                      setPrice('');
+                      return;
+                    }
+                    // Convert to cents then format as dollars
+                    const cents = parseInt(digits, 10);
+                    const formatted = (cents / 100).toFixed(2);
+                    setPrice(formatted);
+                  }}
+                  keyboardType="number-pad"
+                />
+              </View>
+              {price !== '' && (
+                <Text style={styles.pricePreview}>${price}</Text>
+              )}
             </View>
           </View>
         </ScrollView>
@@ -662,6 +685,41 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  doneButton: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+  },
+  doneButtonText: {
+    color: Colors.background,
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  priceInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  priceCurrencySymbol: {
+    color: Colors.text,
+    fontSize: FontSizes.lg,
+    fontWeight: '600',
+    marginRight: Spacing.sm,
+  },
+  priceInput: {
+    flex: 1,
+  },
+  pricePreview: {
+    color: Colors.accent,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+    marginTop: Spacing.xs,
   },
   suggestionsContainer: {
     backgroundColor: Colors.card,

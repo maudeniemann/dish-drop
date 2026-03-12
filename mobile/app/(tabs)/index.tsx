@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Share,
   Alert,
+  Platform,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
@@ -29,6 +30,19 @@ import * as Sharing from 'expo-sharing';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const POST_HEIGHT = SCREEN_HEIGHT - 180;
+
+// Truncate long restaurant names at dashes (e.g. "El Barco – Mexican Restaurant & Tequila Bar" → "El Barco")
+function truncateRestaurantName(name: string): string {
+  // Split on " – " (em-dash) or " — " (long dash) with surrounding spaces
+  const emDashIndex = name.indexOf(' \u2013 ');
+  if (emDashIndex > 0) return name.substring(0, emDashIndex);
+  const longDashIndex = name.indexOf(' \u2014 ');
+  if (longDashIndex > 0) return name.substring(0, longDashIndex);
+  // Split on " - " (hyphen with spaces) only if result is at least 3 chars
+  const hyphenIndex = name.indexOf(' - ');
+  if (hyphenIndex >= 3) return name.substring(0, hyphenIndex);
+  return name;
+}
 
 interface SwipeablePostProps {
   post: Post;
@@ -100,13 +114,16 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
                 source={{ uri: post.user.profileImage || 'https://via.placeholder.com/40' }}
                 style={styles.avatar}
               />
+              {/* Post-specific meals donated badge */}
+              {(post.mealsDonated != null && post.mealsDonated > 0) && (
+                <View style={styles.postMealsBadge}>
+                  <Ionicons name="heart" size={12} color={Colors.text} />
+                  <Text style={styles.postMealsBadgeText}>{post.mealsDonated}</Text>
+                </View>
+              )}
               <View>
                 <View style={styles.usernameRow}>
                   <Text style={styles.username}>@{post.user.username}</Text>
-                  <View style={styles.mealIndicator}>
-                    <Ionicons name="heart" size={10} color={Colors.error} />
-                    <Text style={styles.mealIndicatorText}>{post.user.mealsDonated || post.mealsDonated || 0}</Text>
-                  </View>
                 </View>
                 {post.user.mealStreak && post.user.mealStreak > 0 && (
                   <View style={styles.streakBadge}>
@@ -114,6 +131,9 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
                     <Text style={styles.streakText}>{post.user.mealStreak} day streak</Text>
                   </View>
                 )}
+                <Text style={styles.topDateText}>
+                  {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                </Text>
               </View>
             </Pressable>
 
@@ -170,7 +190,7 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
             >
               <View style={styles.restaurantRow}>
                 <Ionicons name="location" size={14} color={Colors.accent} />
-                <Text style={styles.restaurantName} numberOfLines={1}>{post.restaurant.name}</Text>
+                <Text style={styles.restaurantName} numberOfLines={1} ellipsizeMode="tail">{truncateRestaurantName(post.restaurant.name)}</Text>
               </View>
             </Pressable>
 
@@ -190,10 +210,6 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
                 {post.caption}
               </Text>
             )}
-
-            <Text style={styles.postTimestamp}>
-              {format(new Date(post.createdAt), 'MMM d, yyyy \u2022 h:mm a')}
-            </Text>
           </View>
         </Animated.View>
       </GestureDetector>
@@ -375,10 +391,11 @@ export default function HomeScreen() {
         }
       }
 
-      // Fallback: text-only share
+      // Fallback: share with image URL for preview on iOS
       const result = await Share.share({
         message,
         title: `${post.dishName} - DishDrop`,
+        ...(Platform.OS === 'ios' && post.imageUrl ? { url: post.imageUrl } : {}),
       });
 
       if (result.action === Share.sharedAction) {
@@ -581,7 +598,7 @@ export default function HomeScreen() {
             Nearby
           </Text>
         </Pressable>
-        {renderCoinBadge()}
+        {/* Coin badge removed per request */}
       </View>
 
       {/* Posts feed */}
@@ -945,6 +962,14 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
+  topDateText: {
+    color: Colors.text,
+    fontSize: FontSizes.xs,
+    textShadowColor: 'rgba(0,0,0,1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 8,
+    marginTop: 2,
+  },
   actionButtons: {
     position: 'absolute',
     right: Spacing.md,
@@ -956,17 +981,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 10,
   },
   actionCount: {
     color: Colors.text,
     fontSize: FontSizes.sm,
     marginTop: 2,
-    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowColor: 'rgba(0,0,0,1)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    textShadowRadius: 10,
   },
   dishInfo: {
     position: 'absolute',
@@ -988,19 +1013,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  mealIndicator: {
+  postMealsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: BorderRadius.full,
+    gap: 3,
+    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    marginRight: Spacing.sm,
   },
-  mealIndicatorText: {
-    color: Colors.error,
+  postMealsBadgeText: {
+    color: Colors.text,
     fontSize: FontSizes.xs,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   ratingScoreBadge: {
     width: 40,
@@ -1040,30 +1066,22 @@ const styles = StyleSheet.create({
   },
   restaurantCity: {
     color: Colors.textSecondary,
-    fontSize: FontSizes.md,
-    textShadowColor: 'rgba(0,0,0,0.95)',
+    fontSize: FontSizes.lg,
+    textShadowColor: 'rgba(0,0,0,1)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 8,
+    textShadowRadius: 12,
   },
   distanceText: {
     color: Colors.textSecondary,
-    fontSize: FontSizes.md,
-    textShadowColor: 'rgba(0,0,0,0.95)',
+    fontSize: FontSizes.lg,
+    textShadowColor: 'rgba(0,0,0,1)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 8,
+    textShadowRadius: 12,
   },
   caption: {
     color: Colors.text,
     fontSize: FontSizes.md,
     marginTop: Spacing.sm,
-    textShadowColor: 'rgba(0,0,0,0.9)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
-  },
-  postTimestamp: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.xs,
-    marginTop: Spacing.xs,
     textShadowColor: 'rgba(0,0,0,0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,

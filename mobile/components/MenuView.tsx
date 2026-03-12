@@ -33,9 +33,9 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
     try {
       const { menu: data } = await api.getRestaurantMenu(restaurantId);
       setMenu(data);
-      // Auto-expand the first category
+      // Auto-expand all categories by default
       if (data.categories.length > 0) {
-        setExpandedCategories(new Set([data.categories[0].name]));
+        setExpandedCategories(new Set(data.categories.map((c: MenuCategory) => c.name)));
       }
     } catch (error) {
       console.error('Error loading menu:', error);
@@ -136,17 +136,15 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
                       >
                         <View style={styles.menuItemInfo}>
                           <View style={styles.menuItemNameRow}>
-                            <Text style={styles.menuItemName}>{item.name}</Text>
-                            {avgRating !== null && (
-                              <View style={[styles.avgRatingBadge, { backgroundColor: getRatingColor(avgRating) }]}>
-                                <Text style={styles.avgRatingText}>{avgRating % 1 === 0 ? avgRating : avgRating.toFixed(1)}</Text>
-                              </View>
-                            )}
+                            <Text style={styles.menuItemName} numberOfLines={1}>{item.name}</Text>
                             {hasReviews && (
                               <View style={styles.reviewBadge}>
                                 <Ionicons name="camera" size={10} color={Colors.background} />
                                 <Text style={styles.reviewBadgeText}>{reviews.length}</Text>
                               </View>
+                            )}
+                            {item.price && (
+                              <Text style={styles.menuItemPrice}>{item.price}</Text>
                             )}
                           </View>
                           {item.description && (
@@ -155,8 +153,16 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
                             </Text>
                           )}
                         </View>
-                        {item.price && (
-                          <Text style={styles.menuItemPrice}>{item.price}</Text>
+                        {avgRating !== null ? (
+                          <View style={styles.avgRatingContainer}>
+                            <View style={[styles.avgRatingSquare, { backgroundColor: getRatingColor(avgRating) }]}>
+                              <Ionicons name="star" size={10} color="rgba(255,255,255,0.5)" style={{ position: 'absolute', top: 2, right: 2 }} />
+                              <Text style={styles.avgRatingSquareText}>{avgRating % 1 === 0 ? avgRating : avgRating.toFixed(1)}</Text>
+                            </View>
+                            <Text style={styles.avgRatingLabel}>DD Avg</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.avgRatingPlaceholder} />
                         )}
                       </Pressable>
 
@@ -271,6 +277,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSizes.md,
     fontWeight: '600',
+    flexShrink: 1,
   },
   menuItemDescription: {
     color: Colors.textSecondary,
@@ -278,21 +285,37 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   menuItemPrice: {
-    color: Colors.accent,
-    fontSize: FontSizes.md,
-    fontWeight: '600',
+    color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+    marginLeft: 'auto',
   },
-  avgRatingBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-    minWidth: 28,
+  avgRatingContainer: {
+    alignItems: 'center',
+    marginLeft: Spacing.sm,
+    flexShrink: 0,
+  },
+  avgRatingSquare: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  avgRatingText: {
+  avgRatingSquareText: {
     color: Colors.background,
-    fontSize: 11,
+    fontSize: FontSizes.md,
     fontWeight: 'bold',
+  },
+  avgRatingLabel: {
+    color: Colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  avgRatingPlaceholder: {
+    width: 40,
+    marginLeft: Spacing.sm,
+    flexShrink: 0,
   },
   reviewBadge: {
     flexDirection: 'row',
