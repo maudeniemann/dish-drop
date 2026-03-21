@@ -12,6 +12,7 @@ import teamRoutes from './routes/teams';
 import searchRoutes from './routes/search';
 import couponRoutes from './routes/coupons';
 import sponsorshipRoutes from './routes/sponsorships';
+import dashboardRoutes from './routes/dashboard';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -37,6 +38,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/sponsorships', sponsorshipRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
