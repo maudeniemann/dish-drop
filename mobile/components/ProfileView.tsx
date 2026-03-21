@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, FontSizes, BorderRadius, getRatingColor } from '../lib/constants';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,6 +31,7 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
+  const insets = useSafeAreaInsets();
   const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -185,7 +187,7 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
         }
       >
         {/* Profile Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: Math.max(insets.top + Spacing.md, 60) }]}>
           <Image
             source={{ uri: profile.profileImage || 'https://via.placeholder.com/100' }}
             style={styles.avatar}
@@ -399,6 +401,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: Spacing.lg,
+    paddingTop: 60,
     gap: Spacing.lg,
   },
   avatar: {
