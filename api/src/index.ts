@@ -14,6 +14,7 @@ import couponRoutes from './routes/coupons';
 import sponsorshipRoutes from './routes/sponsorships';
 import dashboardRoutes from './routes/dashboard';
 import moderationRoutes from './routes/moderation';
+import sponsoredRoutes from './routes/sponsored';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +42,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/sponsorships', sponsorshipRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/moderation', moderationRoutes);
+app.use('/api/sponsored', sponsoredRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

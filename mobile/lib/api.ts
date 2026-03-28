@@ -1161,12 +1161,33 @@ class ApiClient {
   }
 
   // Sponsored content
-  async getSponsoredPost(): Promise<{ sponsored: SponsoredPost | null }> {
+  async getSponsoredPost(lat?: number, lng?: number): Promise<{ sponsored: SponsoredPost | null }> {
     if (USE_MOCK_DATA) {
       await new Promise(resolve => setTimeout(resolve, 100));
       return { sponsored: mockSponsoredPost };
     }
-    return this.request('/sponsored/feed');
+    const params = lat && lng ? `?lat=${lat}&lng=${lng}` : '';
+    return this.request(`/sponsored/feed${params}`);
+  }
+
+  async trackSponsoredClick(sponsoredPostId: string): Promise<void> {
+    if (USE_MOCK_DATA) return;
+    await this.request(`/sponsored/${sponsoredPostId}/click`, { method: 'POST' });
+  }
+
+  async getMysteryBoxes(lat?: number, lng?: number): Promise<{ mysteryBoxes: any[] }> {
+    if (USE_MOCK_DATA) {
+      return { mysteryBoxes: [] };
+    }
+    const params = lat && lng ? `?lat=${lat}&lng=${lng}` : '';
+    return this.request(`/sponsored/mystery-boxes${params}`);
+  }
+
+  async claimMysteryBox(boxId: string): Promise<any> {
+    if (USE_MOCK_DATA) {
+      return { message: 'Mock claim' };
+    }
+    return this.request(`/sponsored/mystery-boxes/${boxId}/claim`, { method: 'POST' });
   }
 
   // Report content

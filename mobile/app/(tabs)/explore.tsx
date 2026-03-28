@@ -418,6 +418,7 @@ export default function ExploreScreen() {
       <Pressable
         style={styles.sponsoredCard}
         onPress={() => {
+          api.trackSponsoredClick(sponsoredPost.id);
           if (sponsoredPost.ctaUrl) Linking.openURL(sponsoredPost.ctaUrl);
         }}
       >

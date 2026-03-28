@@ -116,6 +116,45 @@ router.post('/claims/:claimId/approve', async (req: Request, res: Response): Pro
 });
 
 // ==========================================
+// MY RESTAURANTS (must be before /:restaurantId routes)
+// ==========================================
+
+// GET /dashboard/my-restaurants - List restaurants owned by the current user
+router.get('/my-restaurants', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const restaurants = await prisma.restaurant.findMany({
+      where: { isClaimed: true, ownerEmail: user.email },
+      include: {
+        _count: {
+          select: {
+            posts: true,
+            sponsoredPosts: true,
+            flashSponsorships: true,
+            mysteryBoxes: true,
+            coupons: true,
+            contentAppeals: true,
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    res.json({ restaurants });
+  } catch (error) {
+    console.error('Error fetching my restaurants:', error);
+    res.status(500).json({ error: 'Failed to fetch restaurants' });
+  }
+});
+
+// ==========================================
 // RESTAURANT OVERVIEW (for claimed restaurants)
 // ==========================================
 
@@ -838,6 +877,423 @@ router.get('/:restaurantId/analytics/sponsorships', async (req: Request, res: Re
   } catch (error) {
     console.error('Error fetching sponsorship analytics:', error);
     res.status(500).json({ error: 'Failed to fetch sponsorship analytics' });
+  }
+});
+
+// ==========================================
+// CLAIM REJECTION
+// ==========================================
+
+// POST /dashboard/claims/:claimId/reject - Admin: reject a claim
+router.post('/claims/:claimId/reject', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { claimId } = req.params;
+    const { rejectionReason } = req.body;
+
+    const claim = await prisma.restaurantClaim.findUnique({ where: { id: claimId } });
+    if (!claim) {
+      res.status(404).json({ error: 'Claim not found' });
+      return;
+    }
+
+    if (claim.status !== 'pending') {
+      res.status(400).json({ error: 'Claim has already been reviewed' });
+      return;
+    }
+
+    const updatedClaim = await prisma.restaurantClaim.update({
+      where: { id: claimId },
+      data: {
+        status: 'rejected',
+        reviewedAt: new Date(),
+        rejectionReason: rejectionReason || 'No reason provided',
+      },
+    });
+
+    res.json({ claim: updatedClaim });
+  } catch (error) {
+    console.error('Error rejecting claim:', error);
+    res.status(500).json({ error: 'Failed to reject claim' });
+  }
+});
+
+// ==========================================
+// RESTAURANT PROFILE UPDATE (from dashboard)
+// ==========================================
+
+// PUT /dashboard/:restaurantId/profile - Update restaurant profile
+router.put('/:restaurantId/profile', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { name, logoUrl, coverImage, phone, website, reservationUrl, orderUrl, cuisineTypes, priceLevel, hours } = req.body;
+
+    const updated = await prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(logoUrl !== undefined && { logoUrl }),
+        ...(coverImage !== undefined && { coverImage }),
+        ...(phone !== undefined && { phone }),
+        ...(website !== undefined && { website }),
+        ...(reservationUrl !== undefined && { reservationUrl }),
+        ...(orderUrl !== undefined && { orderUrl }),
+        ...(cuisineTypes !== undefined && { cuisineTypes }),
+        ...(priceLevel !== undefined && { priceLevel }),
+        ...(hours !== undefined && { hours }),
+      },
+    });
+
+    res.json({ restaurant: updated });
+  } catch (error) {
+    console.error('Error updating restaurant profile:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// ==========================================
+// MENU ITEM UPDATE & DELETE
+// ==========================================
+
+// PUT /dashboard/:restaurantId/menu/items - Update a menu item
+router.put('/:restaurantId/menu/items', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { categoryName, itemName, updatedItem } = req.body;
+    if (!categoryName || !itemName || !updatedItem) {
+      res.status(400).json({ error: 'categoryName, itemName, and updatedItem are required' });
+      return;
+    }
+
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { menu: true },
+    });
+
+    const menu: any = restaurant?.menu || { categories: [] };
+    const category = menu.categories.find((c: any) => c.name === categoryName);
+    if (!category) {
+      res.status(404).json({ error: 'Category not found' });
+      return;
+    }
+
+    const itemIndex = category.items.findIndex((i: any) => i.name === itemName);
+    if (itemIndex === -1) {
+      res.status(404).json({ error: 'Menu item not found' });
+      return;
+    }
+
+    category.items[itemIndex] = {
+      ...category.items[itemIndex],
+      ...updatedItem,
+    };
+
+    const updated = await prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: { menu },
+      select: { menu: true },
+    });
+
+    res.json({ menu: updated.menu });
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    res.status(500).json({ error: 'Failed to update menu item' });
+  }
+});
+
+// DELETE /dashboard/:restaurantId/menu/items - Delete a menu item
+router.delete('/:restaurantId/menu/items', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { categoryName, itemName } = req.body;
+    if (!categoryName || !itemName) {
+      res.status(400).json({ error: 'categoryName and itemName are required' });
+      return;
+    }
+
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { menu: true },
+    });
+
+    const menu: any = restaurant?.menu || { categories: [] };
+    const category = menu.categories.find((c: any) => c.name === categoryName);
+    if (!category) {
+      res.status(404).json({ error: 'Category not found' });
+      return;
+    }
+
+    category.items = category.items.filter((i: any) => i.name !== itemName);
+
+    // Remove empty categories
+    if (category.items.length === 0) {
+      menu.categories = menu.categories.filter((c: any) => c.name !== categoryName);
+    }
+
+    const updated = await prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: { menu },
+      select: { menu: true },
+    });
+
+    res.json({ menu: updated.menu });
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    res.status(500).json({ error: 'Failed to delete menu item' });
+  }
+});
+
+// ==========================================
+// DELETE/DEACTIVATE SPONSORSHIPS
+// ==========================================
+
+// DELETE /dashboard/:restaurantId/sponsored-posts/:postId - Delete sponsored post
+router.delete('/:restaurantId/sponsored-posts/:postId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId, postId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    await prisma.sponsoredPost.delete({ where: { id: postId } });
+    res.json({ message: 'Sponsored post deleted' });
+  } catch (error) {
+    console.error('Error deleting sponsored post:', error);
+    res.status(500).json({ error: 'Failed to delete sponsored post' });
+  }
+});
+
+// PUT /dashboard/:restaurantId/flash-sponsorships/:sponsorshipId - Update flash sponsorship
+router.put('/:restaurantId/flash-sponsorships/:sponsorshipId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId, sponsorshipId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { isActive, title, description, endsAt, bannerUrl } = req.body;
+
+    const updated = await prisma.flashSponsorship.update({
+      where: { id: sponsorshipId },
+      data: {
+        ...(isActive !== undefined && { isActive }),
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(endsAt !== undefined && { endsAt: new Date(endsAt) }),
+        ...(bannerUrl !== undefined && { bannerUrl }),
+      },
+    });
+
+    res.json({ sponsorship: updated });
+  } catch (error) {
+    console.error('Error updating flash sponsorship:', error);
+    res.status(500).json({ error: 'Failed to update flash sponsorship' });
+  }
+});
+
+// PUT /dashboard/:restaurantId/mystery-boxes/:boxId - Update mystery box
+router.put('/:restaurantId/mystery-boxes/:boxId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId, boxId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { isActive, offerTitle, offerDescription, expiresAt } = req.body;
+
+    const updated = await prisma.mysteryBox.update({
+      where: { id: boxId },
+      data: {
+        ...(isActive !== undefined && { isActive }),
+        ...(offerTitle !== undefined && { offerTitle }),
+        ...(offerDescription !== undefined && { offerDescription }),
+        ...(expiresAt !== undefined && { expiresAt: new Date(expiresAt) }),
+      },
+    });
+
+    res.json({ mysteryBox: updated });
+  } catch (error) {
+    console.error('Error updating mystery box:', error);
+    res.status(500).json({ error: 'Failed to update mystery box' });
+  }
+});
+
+// PUT /dashboard/:restaurantId/coupons/:couponId - Update coupon
+router.put('/:restaurantId/coupons/:couponId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId, couponId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { isActive, title, description, coinCost, totalQuantity, expiresAt } = req.body;
+
+    const updated = await prisma.coupon.update({
+      where: { id: couponId },
+      data: {
+        ...(isActive !== undefined && { isActive }),
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(coinCost !== undefined && { coinCost }),
+        ...(totalQuantity !== undefined && { totalQuantity }),
+        ...(expiresAt !== undefined && { expiresAt: new Date(expiresAt) }),
+      },
+    });
+
+    res.json({ coupon: updated });
+  } catch (error) {
+    console.error('Error updating coupon:', error);
+    res.status(500).json({ error: 'Failed to update coupon' });
+  }
+});
+
+// ==========================================
+// ANALYTICS SNAPSHOTS
+// ==========================================
+
+// POST /dashboard/:restaurantId/analytics/snapshot - Create daily analytics snapshot
+router.post('/:restaurantId/analytics/snapshot', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if snapshot already exists for today
+    const existing = await prisma.restaurantAnalyticsSnapshot.findUnique({
+      where: { restaurantId_date: { restaurantId, date: today } },
+    });
+
+    if (existing) {
+      res.json({ snapshot: existing, message: 'Snapshot already exists for today' });
+      return;
+    }
+
+    // Calculate today's metrics
+    const startOfDay = new Date(today);
+    const endOfDay = new Date(today);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
+    const [profileViews, totalSaves, dishClicks, newReviews, recentPosts] = await Promise.all([
+      // Estimate profile views from post view counts
+      prisma.post.aggregate({
+        where: { restaurantId, createdAt: { gte: startOfDay, lt: endOfDay } },
+        _sum: { viewCount: true },
+      }),
+      prisma.save.count({
+        where: { post: { restaurantId }, createdAt: { gte: startOfDay, lt: endOfDay } },
+      }),
+      // Dish clicks approximated from likes + saves
+      prisma.like.count({
+        where: { post: { restaurantId }, createdAt: { gte: startOfDay, lt: endOfDay } },
+      }),
+      prisma.post.count({
+        where: { restaurantId, createdAt: { gte: startOfDay, lt: endOfDay } },
+      }),
+      prisma.post.findMany({
+        where: { restaurantId, createdAt: { gte: startOfDay, lt: endOfDay } },
+        select: { rating: true },
+      }),
+    ]);
+
+    const avgRating = recentPosts.length > 0
+      ? recentPosts.reduce((sum, p) => sum + p.rating, 0) / recentPosts.length
+      : null;
+
+    const snapshot = await prisma.restaurantAnalyticsSnapshot.create({
+      data: {
+        restaurantId,
+        date: today,
+        profileViews: profileViews._sum.viewCount || 0,
+        totalSaves,
+        dishClicks,
+        newReviews,
+        averageRating: avgRating,
+      },
+    });
+
+    res.status(201).json({ snapshot });
+  } catch (error) {
+    console.error('Error creating analytics snapshot:', error);
+    res.status(500).json({ error: 'Failed to create snapshot' });
+  }
+});
+
+// GET /dashboard/:restaurantId/analytics/history - Get analytics history
+router.get('/:restaurantId/analytics/history', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { restaurantId } = req.params;
+    const userId = req.user!.userId;
+
+    const isOwner = await verifyOwnership(userId, restaurantId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const { days = '30' } = req.query;
+    const daysNum = parseInt(days as string);
+    const sinceDate = new Date();
+    sinceDate.setDate(sinceDate.getDate() - daysNum);
+
+    const snapshots = await prisma.restaurantAnalyticsSnapshot.findMany({
+      where: {
+        restaurantId,
+        date: { gte: sinceDate },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    res.json({ snapshots });
+  } catch (error) {
+    console.error('Error fetching analytics history:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics history' });
   }
 });
 
