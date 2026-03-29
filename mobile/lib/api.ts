@@ -338,7 +338,7 @@ const mockCommunityCollections: Collection[] = [
 ];
 
 // Enable mock mode for demos
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Mock current user for demo mode
 const MOCK_CURRENT_USER: User = {
